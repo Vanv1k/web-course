@@ -1,9 +1,13 @@
 package main 
 
 import (
-	"fmt"
+	"log"
+
+	"github.com/Vanv1k/web-course/internal/api"
 )
 
 func main() {
-	fmt.Println("hello world")
+	log.Println("Application start!")
+	api.StartServer()
+	log.Println("Application terminated!")
 }

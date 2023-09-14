@@ -1,0 +1,166 @@
+/* Указываем box sizing */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Убираем внутренние отступы */
+ul[class],
+ol[class] {
+  padding: 0;
+}
+
+/* Убираем внешние отступы */
+body,
+h1,
+h2,
+h3,
+h4,
+p,
+ul[class],
+ol[class],
+li,
+figure,
+figcaption,
+blockquote,
+dl,
+dd {
+  margin: 0;
+}
+
+/* Выставляем основные настройки по-умолчанию для body */
+body {
+  min-height: 100vh;
+  scroll-behavior: smooth;
+  text-rendering: optimizeSpeed;
+  line-height: 1.5;
+}
+
+/* Удаляем стандартную стилизацию для всех ul и il, у которых есть атрибут class*/
+ul[class],
+ol[class] {
+  list-style: none;
+}
+
+/* Элементы a, у которых нет класса, сбрасываем до дефолтных стилей */
+a:not([class]) {
+  text-decoration-skip-ink: auto;
+}
+
+/* Упрощаем работу с изображениями */
+img {
+  max-width: 100%;
+  display: block;
+}
+
+/* Указываем понятную периодичность в потоке данных у article*/
+article > * + * {
+  margin-top: 1em;
+}
+
+/* Наследуем шрифты для инпутов и кнопок */
+input,
+button,
+textarea,
+select {
+  font: inherit;
+}
+
+/* Удаляем все анимации и переходы для людей, которые предпочитай их не использовать */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+nav {
+    background-color:#2f2f2f; 
+    line-height: 3;
+    max-height: fit-content;
+    position: relative;
+}
+
+
+.search {
+ width: 300px;
+    height: 35px;
+    background: #f5f7f9;
+    border-radius: 10px;
+    position: absolute; /* Устанавливаем абсолютную позицию для поисковой строки */
+    top: 50%; /* Располагаем вертикально по центру */
+    right: 10%; /* Располагаем справа с отступом 20px */
+    transform: translateY(-50%); /* Корректируем вертикальное выравнивание */
+}
+
+.line {
+  border-bottom: 3px solid rgb(187, 187, 187);
+  margin: 0 2%; 
+}
+
+
+.logo {
+    color: #f5f7f9;
+    text-decoration: none;
+    font-family: 'Times New Roman', Times, serif;
+    font-size:160%;
+    margin: 10% 10% 10% 5%;
+}
+
+.text {
+  color: #f5f7f9;
+  font-family: 'Times New Roman', Times, serif;
+}
+
+.container {
+    background-color: #2f2f2f;
+    padding-top: 6%;
+
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.col {
+  flex: 1;
+}
+
+.card {
+  border: 3px solid rgb(187, 187, 187);
+  border-radius: 10px;
+  margin: 0 8% 8% 8%;
+  overflow: hidden;
+  min-height: auto;
+}
+
+.card-img {
+  overflow: hidden;
+
+}
+
+.card-name {
+  padding: 0% 10%;
+  font-size: 180%; /* Размер шрифта в процентах */ 
+}
+
+.card-description {
+  padding: 2% 10% 2% 10%;
+  font-size: 110%; /* Размер шрифта в процентах */ 
+}
+
+.button-show {
+  margin: 2% 10% 5%;
+  border-radius: 10px;
+  width: 35%;
+  background-color: #5ea3b0;
+  border-color: #5ea3b0;
+  color: #ffffff;
+}
+/* .nav-wrapper {
+    background-color: aqua;
+} */

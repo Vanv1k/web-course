@@ -78,22 +78,28 @@ select {
 }
 
 nav {
-    background-color:#2f2f2f; 
-    line-height: 3;
-    max-height: fit-content;
-    position: relative;
+  background-color: #2f2f2f;
+  line-height: 3;
+  max-height: fit-content;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 1000;
 }
 
-
 .search {
- width: 300px;
-    height: 35px;
-    background: #f5f7f9;
-    border-radius: 10px;
-    position: absolute; /* Устанавливаем абсолютную позицию для поисковой строки */
-    top: 50%; /* Располагаем вертикально по центру */
-    right: 10%; /* Располагаем справа с отступом 20px */
-    transform: translateY(-50%); /* Корректируем вертикальное выравнивание */
+    display: flex;
+    position: absolute; 
+    top: 50%; 
+    right: 10%; 
+    transform: translateY(-50%);
+}
+
+.search-box {
+  width: 300px;
+  height: 35px;
+  background: #f5f7f9;
+  border-radius: 20px;
 }
 
 .line {
@@ -118,16 +124,16 @@ nav {
 .container {
     background-color: #2f2f2f;
     padding-top: 6%;
-
 }
 
+
 .row {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
 }
 
 .col {
-  flex: 1;
+  display: flex;
 }
 
 .card {
@@ -135,12 +141,13 @@ nav {
   border-radius: 10px;
   margin: 0 8% 8% 8%;
   overflow: hidden;
-  min-height: auto;
+  min-height: max-content;
+  max-width: auto;
+  max-height: max-content;
 }
 
 .card-img {
   overflow: hidden;
-
 }
 
 .card-name {
@@ -153,13 +160,23 @@ nav {
   font-size: 110%; /* Размер шрифта в процентах */ 
 }
 
-.button-show {
+.button {
   margin: 2% 10% 5%;
-  border-radius: 10px;
-  width: 35%;
+  border-radius: 25px;
+  width: 25%;
   background-color: #5ea3b0;
   border-color: #5ea3b0;
   color: #ffffff;
+}
+
+.button-search {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 35px;
+  margin: 0 0 0 5%;
+  width: 100px;
 }
 /* .nav-wrapper {
     background-color: aqua;

@@ -6,11 +6,11 @@
     </head>
     <body>    
         <nav>
-            <a href="#" class="logo">IT Strategy</a>
-            <div class="search">
-                <input type="search" id="fsearch" name="fsearch"  placeholder="Search" class="search-box">
+            <a href="/" class="logo">IT Strategy</a>
+            <form class="search" action="/search" method="get">
+                <input type="search" id="fsearch" name="fsearch"  placeholder="Поиск" class="search-box">
                 <button type="submit" class="button button-search">Искать</button>
-            </div>
+            </form>
             <div class="line"></div>
         </nav>
        
@@ -18,85 +18,20 @@
             <!-- строка с услугами -->
             <div class="row">
                 <!-- колонки с услугами -->
+                {{range .services}}
                 <div class="col">
                     <div class="card">
-                        <img class="card-img" src="/img/security.jpg"/>
-                        <h1 class="text card-name">Интернет безопасность</h1>
-                        <p class="text card-description">
-                            Защитите свои личные данные, финансы и конфиденциальную информацию 
-                            от киберугроз с помощью современных средств и решений. 
-                            Надежная интернет-безопасность - это ключ к спокойствию и уверенности в сети.
-                        </p>
-                        <button type="button" class="button button-show">Подробнее</button>
+                        <img class="card-img" src="{{.Image}}"/>
+                        <h1 class="text card-name">{{.Name}}</h1>
+                        <p class="text card-description">{{.Description}}</p>
+                        <div class="card-bottom-part">
+                            <p class="card-price">{{.Price}} рублей</p>
+                            <a class="button button-show" href="/service/{{.Id}}">Подробнее</a>
+                        </div>
                     </div>
                 </div>
-                <div class="col">
-                    <div class="card">
-                        <img class="card-img" src="/img/code.jpg"/>
-                        <h1 class="text card-name">Основы безопасного кода</h1>
-                        <p class="text card-description">
-                            Узнайте, как создавать программное обеспечение, которое защищено от взломов и атак. 
-                            Мы поможем вам освоить принципы безопасного программирования и создавать приложения, 
-                            которые стоят на страже данных и конфиденциальности.
-                        </p>
-                        <button type="button" class="button button-show">Подробнее</button>
-                    </div>
-                </div>
-                <div class="col">
-                    <div class="card">
-                        <img class="card-img" src="/img/lock.jpg"/>
-                        <h1 class="text card-name">Защита баз данных</h1>
-                        <p class="text card-description">
-                            Наши эксперты готовы помочь вам создать броню вокруг ваших ценных данных. 
-                            Мы проведем аудит безопасности, разработаем стратегию защиты и обеспечим 
-                            вашу базу данных надежными решениями. 
-                        </p>
-                        <button type="button" class="button button-show">Подробнее</button>
-                    </div>
-                </div>
-                <!-- колонки с услугами -->
-                <div class="col">
-                    <div class="card">
-                        <img class="card-img" src="/img/crypto.jpg"/>
-                        <h1 class="text card-name">Защита баз данных</h1>
-                        <p class="text card-description">
-                            Внедрение блокчейна поможет вам улучшить 
-                            эффективность бизнес-процессов, обеспечить прозрачность и безопасность данных, 
-                            а также снизить затраты. Мы создадим для вас индивидуальное решение, 
-                            которое поможет вашей компании выйти на новый уровень конкурентоспособности.
-                        </p>
-                        <button type="button" class="button button-show">Подробнее</button>
-                    </div>
-                </div>
-                <!-- <div class="col col-2">
-                    <div class="card">
-
-                    </div>
-                </div>
-                <div class="col col-3">
-                    <div class="card">
-
-                    </div>
-                </div> -->
+                {{end}}
             </div>
-
-            <!-- <div class="row">
-                <div class="col col-1">
-                    <div class="card">
-
-                    </div>
-                </div>
-                <div class="col col-2">
-                    <div class="card">
-
-                    </div>
-                </div>
-                <div class="col col-3">
-                    <div class="card">
-
-                    </div>
-                </div>
-            </div> -->
         </div>
     </body>
 </html>

@@ -151,6 +151,19 @@ body {
   min-width: 200px;
 }
 
+.card-bottom-part {
+  display: flex;
+  position: relative;
+}
+
+.card-price {
+  flex: 1;
+  color: #ffffff;
+  font-size: 120%;
+  margin-left: 10%;
+  margin-top: 2%;
+}
+
 .card-img {
   overflow: hidden;
 }
@@ -167,12 +180,22 @@ body {
 }
 
 .button {
+  text-decoration: none;
   margin: 2% 10% 5%;
   border-radius: 25px;
   width: 120px;
   background-color: #5ea3b0;
   border-color: #5ea3b0;
   color: #ffffff;
+}
+
+.button-show {
+  height: 100%;
+  flex: 1;
+  display: flex;
+  height: 35px;
+  align-items: center;
+  justify-content: center;
 }
 
 .button-search {
@@ -212,9 +235,20 @@ body {
 }
 
 .button-buy {
-  position: absolute;
-  width: 150px;
+  flex: 1;
+  max-width: 150px;
   height: 40px;
-  right: 2%; 
   font-size: 115%;
+}
+
+.card-price-selected {
+  margin-top: 3%;
+  font-size: 125%;
+}
+
+.bottom-part {
+  display: flex;
+  width: 30%;
+  position: absolute;
+  right: 4%; 
 }

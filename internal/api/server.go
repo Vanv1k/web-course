@@ -69,14 +69,16 @@ func StartServer() {
 	})
 
 	r.GET("/", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "index.tmpl", gin.H{
-			"services": services,
-		})
-	})
 
-	r.GET("/search", func(c *gin.Context) {
 
 		searchQuery := c.DefaultQuery("fsearch","")
+
+		if searchQuery == "" {
+			c.HTML(http.StatusOK, "index.tmpl", gin.H{
+				"services": services,
+			})
+			return
+		}
 
 		var result []Service
 
@@ -85,11 +87,30 @@ func StartServer() {
 				result = append(result, service)
 			}
 		}
-		
+
 		c.HTML(http.StatusOK, "index.tmpl", gin.H {
 			"services": result,
+			"search_text": searchQuery,
 		})
 	})
+
+	// r.GET("/search", func(c *gin.Context) {
+
+	// 	searchQuery := c.DefaultQuery("fsearch","")
+
+	// 	var result []Service
+
+	// 	for _, service := range services {
+	// 		if strings.Contains(strings.ToLower(service.Name), strings.ToLower(searchQuery)) {
+	// 			result = append(result, service)
+	// 		}
+	// 	}
+
+	// 	c.HTML(http.StatusOK, "index.tmpl", gin.H {
+	// 		"services": result,
+	// 		"search_text": searchQuery,
+	// 	})
+	// })
 	
 	r.GET("/service/:id", func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))

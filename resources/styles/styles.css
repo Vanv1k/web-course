@@ -123,13 +123,13 @@ body {
 .text {
   color: #ebebeb;
   font-family: 'Times New Roman', Times, serif;
+  text-decoration: none;
 }
 
 .container {
     background-color: #2f2f2f;
     padding-top: 10%;
 }
-
 
 .row {
   display: grid;

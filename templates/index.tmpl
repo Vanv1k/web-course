@@ -21,11 +21,14 @@
                 {{range .services}}
                 <div class="col">
                     <div class="card">
-                        <img class="card-img" src="{{.Image}}"/>
+                        <div class="card-upper-part">
+                            <a href="#" class="delete">X<a>
+                            <img class="card-img" src="{{.Image}}"/>
+                        </div>
                         <h1 class="text card-name">{{.Name}}</h1>
                         <p class="text card-description">{{.Description}}</p>
                         <div class="card-bottom-part">
-                            <p class="card-price">{{.Price}} рублей</p>
+                            <p class="card-price">{{.Price}} руб.</p>
                             <a class="button button-show" href="/service/{{.Id}}">Подробнее</a>
                         </div>
                     </div>

@@ -1,0 +1,2 @@
+ServiceHost = "localhost"
+ServicePort = 8080 

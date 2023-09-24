@@ -1,4 +1,4 @@
-package api
+package app
 
 import (
 	"log"
@@ -6,73 +6,73 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/gin-gonic/gin"
+	"github.com/Vanv1k/web-course/internal/app/ds"
 
-	"database/sql"
+	"github.com/gin-gonic/gin"
 
 	_ "github.com/lib/pq"
 )
 
-var consultations = []Consultation{
-	{
-		Id:   1,
-		Name: "Интернет безопасность",
-		Description: "Защитите свои личные данные, финансы и конфиденциальную информацию " +
-			"от киберугроз с помощью современных средств и решений. " +
-			"Надежная интернет-безопасность - это ключ к спокойствию и уверенности в сети.",
-		Price: 9000,
-		Image: "/img/security.jpg",
-	},
-	{
-		Id:   2,
-		Name: "Основы безопасного кода",
-		Description: "Узнайте, как создавать программное обеспечение, которое защищено от взломов и атак. " +
-			"Мы поможем вам освоить принципы безопасного программирования и создавать приложения, " +
-			"которые стоят на страже данных и конфиденциальности.",
-		Price: 10000,
-		Image: "/img/code.jpg",
-	},
-	{
-		Id:   3,
-		Name: "Защита баз данных",
-		Description: "Наши эксперты готовы помочь вам создать броню вокруг ваших ценных данных. " +
-			"Мы проведем аудит безопасности, разработаем стратегию защиты и обеспечим " +
-			"вашу базу данных надежными решениями. У нас в штате большое количество специалистов " +
-			"с соответствующим опытом, которые готовы Вам помочь.",
-		Price: 23000,
-		Image: "/img/lock.jpg",
-	},
-	{
-		Id:   4,
-		Name: "Блокчейн технологии",
-		Description: "Внедрение блокчейна поможет вам улучшить " +
-			"эффективность бизнес-процессов, обеспечить прозрачность и безопасность данных, " +
-			"а также снизить затраты. Мы создадим для вас индивидуальное решение, " +
-			"которое поможет вашей компании выйти на новый уровень конкурентоспособности.",
-		Price: 12000,
-		Image: "/img/crypto.jpg",
-	},
-}
+// var consultations = []Consultation{
+// 	{
+// 		Id:   1,
+// 		Name: "Интернет безопасность",
+// 		Description: "Защитите свои личные данные, финансы и конфиденциальную информацию " +
+// 			"от киберугроз с помощью современных средств и решений. " +
+// 			"Надежная интернет-безопасность - это ключ к спокойствию и уверенности в сети.",
+// 		Price: 9000,
+// 		Image: "/img/security.jpg",
+// 	},
+// 	{
+// 		Id:   2,
+// 		Name: "Основы безопасного кода",
+// 		Description: "Узнайте, как создавать программное обеспечение, которое защищено от взломов и атак. " +
+// 			"Мы поможем вам освоить принципы безопасного программирования и создавать приложения, " +
+// 			"которые стоят на страже данных и конфиденциальности.",
+// 		Price: 10000,
+// 		Image: "/img/code.jpg",
+// 	},
+// 	{
+// 		Id:   3,
+// 		Name: "Защита баз данных",
+// 		Description: "Наши эксперты готовы помочь вам создать броню вокруг ваших ценных данных. " +
+// 			"Мы проведем аудит безопасности, разработаем стратегию защиты и обеспечим " +
+// 			"вашу базу данных надежными решениями. У нас в штате большое количество специалистов " +
+// 			"с соответствующим опытом, которые готовы Вам помочь.",
+// 		Price: 23000,
+// 		Image: "/img/lock.jpg",
+// 	},
+// 	{
+// 		Id:   4,
+// 		Name: "Блокчейн технологии",
+// 		Description: "Внедрение блокчейна поможет вам улучшить " +
+// 			"эффективность бизнес-процессов, обеспечить прозрачность и безопасность данных, " +
+// 			"а также снизить затраты. Мы создадим для вас индивидуальное решение, " +
+// 			"которое поможет вашей компании выйти на новый уровень конкурентоспособности.",
+// 		Price: 12000,
+// 		Image: "/img/crypto.jpg",
+// 	},
+// }
 
-func setupDB() (*sql.DB, error) {
-	// Здесь используйте значения из ваших переменных окружения или файла конфигурации
-	connectionString := "user=postgres password=123987 dbname=IT_services host=localhost sslmode=disable"
+// func setupDB() (*sql.DB, error) {
+// 	// Здесь используйте значения из ваших переменных окружения или файла конфигурации
+// 	connectionString := "user=postgres password=123987 dbname=IT_services host=localhost port=5432 sslmode=disable"
 
-	db, err := sql.Open("postgres", connectionString)
-	if err != nil {
-		return nil, err
-	}
+// 	db, err := sql.Open("postgres", connectionString)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	// Попробовать установить соединение
-	if err = db.Ping(); err != nil {
-		db.Close()
-		return nil, err
-	}
+// 	// Попробовать установить соединение
+// 	if err = db.Ping(); err != nil {
+// 		db.Close()
+// 		return nil, err
+// 	}
 
-	return db, nil
-}
+// 	return db, nil
+// }
 
-func StartServer() {
+func (a *Application) StartServer() {
 	log.Println("Server start up")
 
 	r := gin.Default()
@@ -83,18 +83,38 @@ func StartServer() {
 	r.Static("/hacker", "./resources")
 	r.LoadHTMLGlob("templates/*")
 
-	db, err := setupDB()
-	if err != nil {
-		log.Fatalf("Failed to connect to the database: %d", err)
-	}
-	defer db.Close()
+	// db, err := setupDB()
+	// if err != nil {
+	// 	log.Fatalf("Failed to connect to the database: %d", err)
+	// }
+	// defer db.Close()
 
-	// rows, err := db.Query(`SELECT consultatuion_id, name FROM public.consultation`)
+	// rows, err := db.Query(`SELECT consultation_id, name, description, image, price FROM public.consultation`)
 	// if err != nil {
 	// 	log.Fatalf("Failed to query the database: %v", err)
 	// }
 	// defer rows.Close()
 
+	// var consultations []Consultation
+
+	// for rows.Next() {
+	// 	var consultation Consultation
+	// 	if err := rows.Scan(&consultation.Id, &consultation.Name, &consultation.Description, &consultation.Image, &consultation.Price); err != nil {
+	// 		log.Fatalf("Failed to scan row: %v", err)
+	// 	}
+	// 	consultations = append(consultations, consultation)
+	// }
+
+	var consultations []ds.Consultation
+	consultations, err := a.repository.GetAllConsultations()
+	if err != nil { // если не получилось
+		log.Printf("cant get product by id %v", err)
+		return
+	}
+	log.Println(consultations[0].Id)
+	log.Println(consultations[1].Id)
+	log.Println(consultations[2].Id)
+	log.Println(consultations[3].Id)
 	r.GET("/", func(c *gin.Context) {
 
 		searchQuery := c.DefaultQuery("fsearch", "")
@@ -106,7 +126,7 @@ func StartServer() {
 			return
 		}
 
-		var result []Consultation
+		var result []ds.Consultation
 
 		for _, consultation := range consultations {
 			if strings.Contains(strings.ToLower(consultation.Name), strings.ToLower(searchQuery)) {

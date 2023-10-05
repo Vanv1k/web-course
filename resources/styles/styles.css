@@ -171,12 +171,15 @@ body {
 }
 
 .delete {
-  font-size: 150%;
+  font-size: 100%;
   text-decoration: none;
+  border-radius: 8px;
   color: rgb(255, 16, 16);
   position: absolute;
-  right: 10px;
-  top: -2px;
+  background-color: transparent;
+  border: none;
+  right: 3px;
+  top: 1px;
 }
 
 .card-img {

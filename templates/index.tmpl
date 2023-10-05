@@ -22,7 +22,9 @@
                 <div class="col">
                     <div class="card">
                         <div class="card-upper-part">
-                            <a href="#" class="delete">X<a>
+                            <form action="/delete/{{.Id}}" method="POST">
+                                <button class="delete">X</button>
+                            </form>
                             <img class="card-img" src="{{.Image}}"/>
                         </div>
                         <h1 class="text card-name">{{.Name}}</h1>

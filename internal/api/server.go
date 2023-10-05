@@ -54,24 +54,6 @@ import (
 // 	},
 // }
 
-// func setupDB() (*sql.DB, error) {
-// 	// Здесь используйте значения из ваших переменных окружения или файла конфигурации
-// 	connectionString := "user=postgres password=123987 dbname=IT_services host=localhost port=5432 sslmode=disable"
-
-// 	db, err := sql.Open("postgres", connectionString)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	// Попробовать установить соединение
-// 	if err = db.Ping(); err != nil {
-// 		db.Close()
-// 		return nil, err
-// 	}
-
-// 	return db, nil
-// }
-
 func (a *Application) StartServer() {
 	log.Println("Server start up")
 
@@ -83,40 +65,13 @@ func (a *Application) StartServer() {
 	r.Static("/hacker", "./resources")
 	r.LoadHTMLGlob("templates/*")
 
-	// db, err := setupDB()
-	// if err != nil {
-	// 	log.Fatalf("Failed to connect to the database: %d", err)
-	// }
-	// defer db.Close()
-
-	// rows, err := db.Query(`SELECT consultation_id, name, description, image, price FROM public.consultation`)
-	// if err != nil {
-	// 	log.Fatalf("Failed to query the database: %v", err)
-	// }
-	// defer rows.Close()
-
-	// var consultations []Consultation
-
-	// for rows.Next() {
-	// 	var consultation Consultation
-	// 	if err := rows.Scan(&consultation.Id, &consultation.Name, &consultation.Description, &consultation.Image, &consultation.Price); err != nil {
-	// 		log.Fatalf("Failed to scan row: %v", err)
-	// 	}
-	// 	consultations = append(consultations, consultation)
-	// }
-
-	var consultations []ds.Consultation
-	consultations, err := a.repository.GetAllConsultations()
-	if err != nil { // если не получилось
-		log.Printf("cant get product by id %v", err)
-		return
-	}
-	log.Println(consultations[0].Id)
-	log.Println(consultations[1].Id)
-	log.Println(consultations[2].Id)
-	log.Println(consultations[3].Id)
 	r.GET("/", func(c *gin.Context) {
-
+		var consultations []ds.Consultation
+		consultations, err := a.repository.GetAllConsultations()
+		if err != nil { // если не получилось
+			log.Printf("cant get product by id %v", err)
+			return
+		}
 		searchQuery := c.DefaultQuery("fsearch", "")
 
 		if searchQuery == "" {
@@ -140,6 +95,18 @@ func (a *Application) StartServer() {
 		})
 	})
 
+	r.POST("/delete/:id", func(c *gin.Context) {
+		id, err := strconv.Atoi(c.Param("id"))
+
+		if err != nil {
+			// Обработка ошибки
+			log.Printf("cant get consultation by id %v", err)
+			c.Redirect(http.StatusMovedPermanently, "/")
+		}
+		a.repository.DeleteConsultation(id)
+		c.Redirect(http.StatusMovedPermanently, "/")
+	})
+
 	// r.GET("/search", func(c *gin.Context) {
 
 	// 	searchQuery := c.DefaultQuery("fsearch","")
@@ -159,15 +126,16 @@ func (a *Application) StartServer() {
 	// })
 
 	r.GET("/service/:id", func(c *gin.Context) {
-		id, err := strconv.Atoi(c.Param("id"))
+		var consultation *ds.Consultation
 
+		id, err := strconv.Atoi(c.Param("id"))
+		consultation, err = a.repository.GetConsultationByID(id)
 		if err != nil {
 			// Обработка ошибки
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid id"})
+			log.Printf("cant get service by id %v", err)
 			return
 		}
 
-		consultation := consultations[id-1]
 		c.HTML(http.StatusOK, "card.tmpl", consultation)
 	})
 

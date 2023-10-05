@@ -17,13 +17,16 @@ type ConsultationRequest struct {
 }
 
 type Request struct {
-	RequestID     uint   `gorm:"primarykey"`
-	Status        string `gorm:"size:30"`
-	StartDate     time.Time
-	FormationDate time.Time
-	EndDate       time.Time
-	UserID        uint
-	ModeratorID   uint
+	RequestID          uint   `gorm:"primarykey"`
+	Status             string `gorm:"size:30"`
+	StartDate          time.Time
+	FormationDate      time.Time
+	EndDate            time.Time
+	UserID             uint
+	ModeratorID        uint
+	Consultation_place string
+	Consultation_time  string
+	Company_name       string
 }
 
 type User struct {

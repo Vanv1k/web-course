@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -71,7 +72,17 @@ func DeleteConsultation(repository *repository.Repository, c *gin.Context) {
 	c.JSON(http.StatusOK, "deleted successful")
 }
 
-func CreateConsultation(repository *repository.Repository, consultation ds.Consultation, c *gin.Context) {
+func CreateConsultation(repository *repository.Repository, c *gin.Context) {
+	var consultation ds.Consultation
+
+	// Попробуйте извлечь JSON-данные из тела запроса и привести их к структуре Consultation
+	if err := c.ShouldBindJSON(&consultation); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"Status":  "Failed",
+			"Message": "неверные данные консультации",
+		})
+		return
+	}
 
 	err := repository.CreateConsultation(consultation)
 	if err != nil {
@@ -82,5 +93,44 @@ func CreateConsultation(repository *repository.Repository, consultation ds.Consu
 	c.JSON(http.StatusOK, gin.H{
 		"consultation": consultation,
 		"status":       "added",
+	})
+}
+
+func UpdateConsultation(repository *repository.Repository, c *gin.Context) {
+	// Извлекаем id консультации из параметра запроса
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, err)
+		return
+	}
+
+	// Проверяем, что id неотрицательный
+	if id < 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"Status":  "Failed",
+			"Message": "неверное значение id",
+		})
+		return
+	}
+
+	// Попробуем извлечь JSON-данные из тела запроса и привести их к структуре Consultation
+	var updatedConsultation ds.Consultation
+	if err := c.ShouldBindJSON(&updatedConsultation); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"Status":  "Failed",
+			"Message": "неверные данные консультации",
+		})
+		return
+	}
+	fmt.Println(updatedConsultation)
+	// Обновляем консультацию в репозитории
+	err = repository.UpdateConsultation(id, updatedConsultation)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status": "updated",
 	})
 }

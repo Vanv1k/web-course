@@ -19,10 +19,6 @@ func (r *Repository) DeleteRequest(id int) error {
 	return r.db.Exec("UPDATE requests SET status = 'deleted' WHERE id=?", id).Error
 }
 
-func (r *Repository) CreateRequest(request ds.Request) error {
-	return r.db.Create(request).Error
-}
-
 func (r *Repository) GetAllRequests() ([]ds.Request, error) {
 	var requests []ds.Request
 	err := r.db.Find(&requests, "status = 'active'").Error
@@ -31,4 +27,40 @@ func (r *Repository) GetAllRequests() ([]ds.Request, error) {
 	}
 
 	return requests, nil
+}
+
+func (r *Repository) UpdateRequest(id int, request ds.Request) error {
+	// Проверяем, существует ли консультация с указанным ID.
+	existingRequest, err := r.GetRequestByID(id)
+	if err != nil {
+		return err // Возвращаем ошибку, если консультация не найдена.
+	}
+
+	// Обновляем поля существующей консультации.
+	existingRequest.Consultation_place = request.Consultation_place
+	existingRequest.Consultation_time = request.Consultation_time
+	existingRequest.Company_name = request.Company_name
+
+	// Сохраняем обновленную консультацию в базу данных.
+	if err := r.db.Model(ds.Request{}).Where("id = ?", id).Updates(existingRequest).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *Repository) UpdateRequestStatus(id int, status string) error {
+	// Проверяем, существует ли консультация с указанным ID.
+	existingRequest, err := r.GetRequestByID(id)
+	if err != nil {
+		return err // Возвращаем ошибку, если консультация не найдена.
+	}
+
+	// Обновляем поля существующей консультации.
+	existingRequest.Status = status
+
+	// Сохраняем обновленную консультацию в базу данных.
+	if err := r.db.Model(ds.Request{}).Where("id = ?", id).Updates(existingRequest).Error; err != nil {
+		return err
+	}
+	return nil
 }

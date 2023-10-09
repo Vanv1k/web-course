@@ -3,7 +3,7 @@ package ds
 import "time"
 
 type Consultation struct {
-	Id          uint `gorm:"primarykey"`
+	Id          int `gorm:"primarykey;autoIncrement"`
 	Name        string
 	Description string
 	Image       string

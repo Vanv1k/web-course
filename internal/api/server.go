@@ -89,13 +89,45 @@ func (a *Application) StartServer() {
 		controller.GetConsultationByID(a.repository, c)
 	})
 
-	r.POST("/consultations/delete/:id", func(c *gin.Context) {
+	r.DELETE("/consultations/delete/:id", func(c *gin.Context) {
 		controller.DeleteConsultation(a.repository, c)
 	})
 
-	// r.POST("/consultations/create/:id", func(c *gin.Context) {
-	// 	controller.CreateConsultation(a.repository, c)
+	r.POST("/consultations/create", func(c *gin.Context) {
+		controller.CreateConsultation(a.repository, c)
+	})
+
+	r.PUT("/consultations/update/:id", func(c *gin.Context) {
+		controller.UpdateConsultation(a.repository, c)
+	})
+
+	// r.POST("/consultations/:id/add-request", func(c *gin.Context) {
+	// 	controller.CreateRequestWithService(a.repository, c)
 	// })
+
+	r.GET("/requests", func(c *gin.Context) {
+		controller.GetAllRequests(a.repository, c)
+	})
+
+	r.GET("/requests/:id", func(c *gin.Context) {
+		controller.GetRequestByID(a.repository, c)
+	})
+
+	r.DELETE("/requests/delete/:id", func(c *gin.Context) {
+		controller.DeleteRequest(a.repository, c)
+	})
+
+	r.PUT("/requests/update/:id", func(c *gin.Context) {
+		controller.UpdateRequest(a.repository, c)
+	})
+
+	r.PUT("/requests/user/:id/update-status", func(c *gin.Context) {
+		controller.UpdateRequestStatus(a.repository, c)
+	})
+
+	r.PUT("/requests/moderator/:id/update-status", func(c *gin.Context) {
+		controller.UpdateRequestStatus(a.repository, c)
+	})
 
 	r.Run()
 

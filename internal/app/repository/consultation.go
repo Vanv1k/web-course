@@ -20,7 +20,7 @@ func (r *Repository) DeleteConsultation(id int) error {
 }
 
 func (r *Repository) CreateConsultation(consultation ds.Consultation) error {
-	return r.db.Create(consultation).Error
+	return r.db.Create(&consultation).Error
 }
 
 func (r *Repository) GetAllConsultations() ([]ds.Consultation, error) {
@@ -31,4 +31,25 @@ func (r *Repository) GetAllConsultations() ([]ds.Consultation, error) {
 	}
 
 	return consultations, nil
+}
+
+func (r *Repository) UpdateConsultation(id int, consultation ds.Consultation) error {
+	// Проверяем, существует ли консультация с указанным ID.
+	existingConsultation, err := r.GetConsultationByID(id)
+	if err != nil {
+		return err // Возвращаем ошибку, если консультация не найдена.
+	}
+
+	// Обновляем поля существующей консультации.
+	existingConsultation.Name = consultation.Name
+	existingConsultation.Description = consultation.Description
+	existingConsultation.Image = consultation.Image
+	existingConsultation.Price = consultation.Price
+	existingConsultation.Status = consultation.Status
+
+	// Сохраняем обновленную консультацию в базу данных.
+	if err := r.db.Model(ds.Consultation{}).Where("id = ?", id).Updates(existingConsultation).Error; err != nil {
+		return err
+	}
+	return nil
 }

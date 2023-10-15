@@ -1,10 +1,15 @@
 package repository
 
 import (
+	"errors"
+	"log"
+	"time"
+
 	"github.com/Vanv1k/web-course/internal/app/ds"
+	"gorm.io/gorm"
 )
 
-func (r *Repository) GetConsultationByID(id int) (*ds.Consultation, error) {
+func (r *Repository) GetConsultationByID(id uint) (*ds.Consultation, error) {
 	consultation := &ds.Consultation{}
 
 	err := r.db.First(consultation, "id = ?", id).Error
@@ -13,6 +18,28 @@ func (r *Repository) GetConsultationByID(id int) (*ds.Consultation, error) {
 	}
 
 	return consultation, nil
+}
+
+func (r *Repository) GetConsultationsByRequestID(id int) (ds.ConsultationInfo, error) {
+	var consultationRequests []ds.ConsultationRequest
+	var consultationInfo ds.ConsultationInfo
+
+	err := r.db.Find(&consultationRequests, "Requestid = ?", id).Error
+	if err != nil {
+		return consultationInfo, err
+	}
+	log.Println(consultationRequests)
+
+	for _, consultationRequest := range consultationRequests {
+		consultation, err := r.GetConsultationByID(uint(consultationRequest.Consultationid))
+		if err != nil {
+			return consultationInfo, err
+		}
+		consultationInfo.Names = append(consultationInfo.Names, consultation.Name)
+		consultationInfo.Prices = append(consultationInfo.Prices, consultation.Price)
+	}
+
+	return consultationInfo, nil
 }
 
 func (r *Repository) DeleteConsultation(id int) error {
@@ -33,9 +60,19 @@ func (r *Repository) GetAllConsultations() ([]ds.Consultation, error) {
 	return consultations, nil
 }
 
+func (r *Repository) GetConsultationsByPrice(maxPrice int) ([]ds.Consultation, error) {
+	var consultations []ds.Consultation
+	err := r.db.Where("status = ? AND price <= ?", "active", maxPrice).Find(&consultations).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return consultations, nil
+}
+
 func (r *Repository) UpdateConsultation(id int, consultation ds.Consultation) error {
 	// Проверяем, существует ли консультация с указанным ID.
-	existingConsultation, err := r.GetConsultationByID(id)
+	existingConsultation, err := r.GetConsultationByID(uint(id))
 	if err != nil {
 		return err // Возвращаем ошибку, если консультация не найдена.
 	}
@@ -52,4 +89,50 @@ func (r *Repository) UpdateConsultation(id int, consultation ds.Consultation) er
 		return err
 	}
 	return nil
+}
+
+func (r *Repository) AddConsultationToRequest(consultationID int, userID int) error {
+	var consultationRequest ds.ConsultationRequest
+	var request ds.Request
+	err := r.db.Where("status = ? AND user_id = ?", "active", userID).First(&request).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			// Запись не найдена, создаем заявку
+			newRequest := ds.Request{
+				Status:             "active",
+				StartDate:          time.Now(),
+				UserID:             uint(userID), // Замените на ID пользователя
+				Consultation_place: "Discord #abfa1213",
+				Consultation_time:  time.Now(),
+				Company_name:       "IT",
+			}
+			err = r.db.Create(&newRequest).Error
+			if err != nil {
+				return err
+			}
+			err = r.db.Where("status = ? AND user_id = ?", "active", userID).First(&request).Error
+			if err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
+	}
+	err = r.db.Where("requestid = ? AND consultationid = ?", request.Id, consultationID).First(&consultationRequest).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			consultationRequest.Consultationid = consultationID
+			consultationRequest.Requestid = int(request.Id)
+			err = r.db.Create(&consultationRequest).Error
+			if err != nil {
+				return err
+			}
+			log.Println("1")
+			return nil
+		}
+	} else {
+		return gorm.ErrRecordNotFound
+	}
+	log.Println("123132")
+	return gorm.ErrRecordNotFound
 }

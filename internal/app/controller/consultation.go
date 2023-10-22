@@ -2,6 +2,7 @@ package controller
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"strconv"
 
@@ -209,4 +210,52 @@ func AddConsultationToRequest(repository *repository.Repository, c *gin.Context)
 	c.JSON(http.StatusOK, gin.H{
 		"status": "added to request",
 	})
+}
+
+func AddConsultationImage(repository *repository.Repository, c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, err)
+		return
+	}
+
+	if id < 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"Status":  "Failed",
+			"Message": "неверное значение id",
+		})
+		return
+	}
+	// Чтение изображения из запроса
+	image, err := c.FormFile("image")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid image"})
+		return
+	}
+
+	// Чтение содержимого изображения в байтах
+	file, err := image.Open()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка при открытии"})
+		return
+	}
+	defer file.Close()
+
+	imageBytes, err := io.ReadAll(file)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка чтения"})
+		return
+	}
+	// Получение Content-Type из заголовков запроса
+	contentType := image.Header.Get("Content-Type")
+
+	// Вызов функции репозитория для добавления изображения
+	err = repository.AddConsultationImage(id, imageBytes, contentType)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка сервера"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Image uploaded successfully"})
+
 }

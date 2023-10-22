@@ -100,6 +100,10 @@ func (a *Application) StartServer() {
 		controller.AddConsultationToRequest(a.repository, c)
 	})
 
+	r.PUT("consultations/:id/addImage", func(c *gin.Context) {
+		controller.AddConsultationImage(a.repository, c)
+	})
+
 	r.GET("/requests", func(c *gin.Context) {
 		controller.GetAllRequests(a.repository, c)
 	})

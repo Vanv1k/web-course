@@ -21,6 +21,18 @@ services: # имеджи, которые запустятся по вашему 
       - 8888:8080
     networks:
       - app_network
+    
+  minio:
+    image: minio/minio
+    ports:
+      - "9001:9001"
+      - "9000:9000"
+    volumes:
+      - minio-data:/data
+    environment:
+      MINIO_ROOT_USER: ITServices
+      MINIO_ROOT_PASSWORD: 123456987
+    command: server --console-address ":9001" /data
 
 networks:
   app_network:
@@ -28,3 +40,4 @@ networks:
 volumes: # часть настроек для хранения данных
   postgresdb-data:
     driver: local
+  minio-data:

@@ -136,3 +136,25 @@ func (r *Repository) AddConsultationToRequest(consultationID int, userID int) er
 	log.Println("123132")
 	return gorm.ErrRecordNotFound
 }
+
+func (r *Repository) AddConsultationImage(id int, imageBytes []byte, contentType string) error {
+	// Удаление существующего изображения (если есть)
+	err := r.minioClient.RemoveServiceImage(id)
+	if err != nil {
+		return err
+	}
+
+	// Загрузка нового изображения в MinIO
+	imageURL, err := r.minioClient.UploadServiceImage(id, imageBytes, contentType)
+	if err != nil {
+		return err
+	}
+
+	// Обновление информации об изображении в БД (например, ссылки на MinIO)
+	err = r.db.Model(&ds.Consultation{}).Where("id = ?", id).Update("image", imageURL).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

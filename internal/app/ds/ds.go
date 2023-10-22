@@ -41,3 +41,7 @@ type ConsultationInfo struct {
 	Names  []string
 	Prices []int
 }
+
+type StatusData struct {
+	Status string `json:"status"`
+}

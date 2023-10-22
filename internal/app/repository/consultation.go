@@ -101,7 +101,7 @@ func (r *Repository) AddConsultationToRequest(consultationID int, userID int) er
 			newRequest := ds.Request{
 				Status:             "active",
 				StartDate:          time.Now(),
-				UserID:             uint(userID), // Замените на ID пользователя
+				UserID:             uint(userID),
 				Consultation_place: "Discord #abfa1213",
 				Consultation_time:  time.Now(),
 				Company_name:       "IT",

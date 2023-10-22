@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"time"
+
 	"github.com/Vanv1k/web-course/internal/app/ds"
 )
 
@@ -26,6 +28,33 @@ func (r *Repository) GetAllRequests() ([]ds.Request, error) {
 		return nil, err
 	}
 
+	return requests, nil
+}
+
+func (r *Repository) GetRequestsByStatus(status string) ([]ds.Request, error) {
+	var requests []ds.Request
+	err := r.db.Where("status = ?", status).Find(&requests).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return requests, nil
+}
+
+func (r *Repository) GetRequestsByDate(startDate time.Time, endDate time.Time) ([]ds.Request, error) {
+	var requests []ds.Request
+	if !endDate.IsZero() {
+		err := r.db.Where("formation_date >= ? AND formation_date <= ?", startDate, endDate).Find(&requests).Error
+		if err != nil {
+			return nil, err
+		}
+		return requests, nil
+	}
+
+	err := r.db.Where("formation_date >= ?", startDate).Find(&requests).Error
+	if err != nil {
+		return nil, err
+	}
 	return requests, nil
 }
 

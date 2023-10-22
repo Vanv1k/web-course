@@ -112,10 +112,10 @@ func (a *Application) StartServer() {
 	r.PUT("/requests/update/:id", func(c *gin.Context) {
 		controller.UpdateRequest(a.repository, c)
 	})
-	r.PUT("/requests/user/:id/update-status", func(c *gin.Context) {
-		controller.UpdateRequestStatus(a.repository, c)
+	r.PUT("/requests/:id/user/update-status", func(c *gin.Context) {
+		controller.UpdateRequestStatusToSendedByUser(a.repository, c)
 	})
-	r.PUT("/requests/moderator/:id/update-status", func(c *gin.Context) {
+	r.PUT("/requests/:id/moderator/update-status", func(c *gin.Context) {
 		controller.UpdateRequestStatus(a.repository, c)
 	})
 

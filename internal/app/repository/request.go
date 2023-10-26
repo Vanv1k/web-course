@@ -23,7 +23,7 @@ func (r *Repository) DeleteRequest(id int) error {
 
 func (r *Repository) GetAllRequests() ([]ds.Request, error) {
 	var requests []ds.Request
-	err := r.db.Find(&requests, "status = 'active'").Error
+	err := r.db.Find(&requests, "status <> 'deleted'").Error
 	if err != nil {
 		return nil, err
 	}

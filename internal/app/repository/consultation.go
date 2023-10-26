@@ -43,6 +43,12 @@ func (r *Repository) GetConsultationsByRequestID(id int) (ds.ConsultationInfo, e
 }
 
 func (r *Repository) DeleteConsultation(id int) error {
+
+	err := r.minioClient.RemoveServiceImage(id)
+	if err != nil {
+		return err
+	}
+
 	return r.db.Exec("UPDATE consultations SET status = 'deleted' WHERE id=?", id).Error
 }
 
@@ -50,24 +56,36 @@ func (r *Repository) CreateConsultation(consultation ds.Consultation) error {
 	return r.db.Create(&consultation).Error
 }
 
-func (r *Repository) GetAllConsultations() ([]ds.Consultation, error) {
+func (r *Repository) GetAllConsultations() ([]ds.Consultation, uint, error) {
 	var consultations []ds.Consultation
+	var request ds.Request
+	var userID = 3
 	err := r.db.Find(&consultations, "status = 'active'").Error
 	if err != nil {
-		return nil, err
+		return nil, 0, err
+	}
+	err = r.db.Where("status = ? AND user_id = ?", "active", userID).First(&request).Error
+	if err != nil {
+		return consultations, 0, nil
 	}
 
-	return consultations, nil
+	return consultations, request.Id, nil
 }
 
-func (r *Repository) GetConsultationsByPrice(maxPrice int) ([]ds.Consultation, error) {
+func (r *Repository) GetConsultationsByPrice(maxPrice int) ([]ds.Consultation, uint, error) {
 	var consultations []ds.Consultation
+	var request ds.Request
+	var userID = 3
 	err := r.db.Where("status = ? AND price <= ?", "active", maxPrice).Find(&consultations).Error
 	if err != nil {
-		return nil, err
+		return nil, 0, err
+	}
+	err = r.db.Where("status = ? AND user_id = ?", "active", userID).First(&request).Error
+	if err != nil {
+		return consultations, 0, nil
 	}
 
-	return consultations, nil
+	return consultations, request.Id, nil
 }
 
 func (r *Repository) UpdateConsultation(id int, consultation ds.Consultation) error {

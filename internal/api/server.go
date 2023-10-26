@@ -26,7 +26,7 @@ func (a *Application) StartServer() {
 
 	r.GET("/", func(c *gin.Context) {
 		var consultations []ds.Consultation
-		consultations, err := a.repository.GetAllConsultations()
+		consultations, _, err := a.repository.GetAllConsultations()
 		if err != nil { // если не получилось
 			log.Printf("cant get product by id %v", err)
 			return
@@ -100,7 +100,7 @@ func (a *Application) StartServer() {
 		controller.AddConsultationToRequest(a.repository, c)
 	})
 
-	r.PUT("consultations/:id/addImage", func(c *gin.Context) {
+	r.POST("consultations/:id/addImage", func(c *gin.Context) {
 		controller.AddConsultationImage(a.repository, c)
 	})
 

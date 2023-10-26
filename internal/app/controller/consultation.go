@@ -58,14 +58,18 @@ func GetConsultationsByRequestID(repository *repository.Repository, c *gin.Conte
 		c.JSON(http.StatusInternalServerError, err)
 		return
 	}
-
-	c.JSON(http.StatusOK, consultationInfo)
+	var result []string
+	for i, _ := range consultationInfo.Names {
+		result = append(result, fmt.Sprintf("%s, цена: %d рублей", consultationInfo.Names[i], consultationInfo.Prices[i]))
+	}
+	c.JSON(http.StatusOK, result)
 }
 
 func GetAllConsultations(repository *repository.Repository, c *gin.Context) {
 	maxPriceStr := c.DefaultQuery("maxPrice", "")
 	var consultations []ds.Consultation
 	var err error
+	var userRequestId uint
 	var maxPrice int
 
 	if maxPriceStr != "" {
@@ -75,7 +79,7 @@ func GetAllConsultations(repository *repository.Repository, c *gin.Context) {
 			return
 		}
 
-		consultations, err = repository.GetConsultationsByPrice(maxPrice)
+		consultations, userRequestId, err = repository.GetConsultationsByPrice(maxPrice)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, err)
 			return
@@ -85,13 +89,16 @@ func GetAllConsultations(repository *repository.Repository, c *gin.Context) {
 		return
 	}
 
-	consultations, err = repository.GetAllConsultations()
+	consultations, userRequestId, err = repository.GetAllConsultations()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, consultations)
+	c.JSON(http.StatusOK, gin.H{
+		"consultation":    consultations,
+		"ActiveRequestId": userRequestId,
+	})
 }
 
 func DeleteConsultation(repository *repository.Repository, c *gin.Context) {

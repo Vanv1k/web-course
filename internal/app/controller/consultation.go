@@ -58,9 +58,19 @@ func GetConsultationsByRequestID(repository *repository.Repository, c *gin.Conte
 		c.JSON(http.StatusInternalServerError, err)
 		return
 	}
-	var result []string
+
+	type Info struct {
+		Name  string
+		Price int
+	}
+
+	var result []Info
 	for i, _ := range consultationInfo.Names {
-		result = append(result, fmt.Sprintf("%s, цена: %d рублей", consultationInfo.Names[i], consultationInfo.Prices[i]))
+		consultation := Info{
+			Name:  consultationInfo.Names[i],
+			Price: consultationInfo.Prices[i],
+		}
+		result = append(result, consultation)
 	}
 	c.JSON(http.StatusOK, result)
 }

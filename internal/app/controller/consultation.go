@@ -95,7 +95,10 @@ func GetAllConsultations(repository *repository.Repository, c *gin.Context) {
 			return
 		}
 
-		c.JSON(http.StatusOK, consultations)
+		c.JSON(http.StatusOK, gin.H{
+			"consultation":    consultations,
+			"ActiveRequestId": userRequestId,
+		})
 		return
 	}
 

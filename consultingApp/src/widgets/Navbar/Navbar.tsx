@@ -1,16 +1,33 @@
 import './Navbar.css'
+import { ChangeEvent } from 'react';
 import Button from 'react-bootstrap/Button';
 import Container from 'react-bootstrap/Container';
 import Form from 'react-bootstrap/Form';
 import Nav from 'react-bootstrap/Nav';
 import { Navbar as NavB } from 'react-bootstrap';
+import { useState } from 'react';
 
-const Navbar = () => {
+interface NavbarProps {
+  onMaxPriceChange?: (value: string) => void; // Define the prop type
+}
 
-    return (
-<NavB expand="lg" className="bg-body-tertiary" style={{ backgroundColor: '#2f2f2f' }}>
-      <Container fluid>
-        <NavB.Brand href="#">IT Services</NavB.Brand>
+const Navbar: React.FC<NavbarProps> = ({ onMaxPriceChange }) => {
+  const [maxPrice, setMaxPrice] = useState('');
+
+  const handleMaxPriceChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setMaxPrice(value);
+
+    // Check if onMaxPriceChange is defined before calling it
+    if (onMaxPriceChange !== undefined) {
+      onMaxPriceChange(value);
+    }
+  };
+
+  return (
+    <NavB expand="lg" bg="dark" data-bs-theme="dark" className="bg-body-tertiary">
+      <Container fluid style={{ marginLeft: '5%' }}>
+        <NavB.Brand href="/">IT Services</NavB.Brand>
         <NavB.Toggle aria-controls="navbarScroll" />
         <NavB.Collapse id="navbarScroll">
           <Nav
@@ -18,22 +35,29 @@ const Navbar = () => {
             style={{ maxHeight: '100px' }}
             navbarScroll
           >
-            <Nav.Link href="#action1">Главная</Nav.Link>
+            <Nav.Link href="/">Главная</Nav.Link>
             <Nav.Link href="#action2">Корзина</Nav.Link>
           </Nav>
-          <Form className="d-flex">
+          <Form
+            className="d-flex"
+            id="search"
+          >
             <Form.Control
               type="search"
-              placeholder="Search"
+              placeholder="Поиск по максимальной цене"
               className="me-2"
               aria-label="Search"
+              value={maxPrice}
+              onChange={handleMaxPriceChange}
             />
-            <Button variant="outline-success">Search</Button>
+            <Button variant="outline-success" type="submit">
+              Искать
+            </Button>
           </Form>
         </NavB.Collapse>
       </Container>
     </NavB>
-    )
-}
+  );
+};
 
 export default Navbar;

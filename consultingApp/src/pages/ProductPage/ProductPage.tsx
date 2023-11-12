@@ -27,7 +27,7 @@ interface ProductData {
   
     const fetchData = async () => {
       try {
-        const response = await fetch(`http://localhost:8080/consultations/${id}`);
+        const response = await fetch(`/api/consultations/${id}`);
         if (!response.ok) {
           throw new Error(`Ошибка при выполнении запроса: ${response.statusText}`);
         }

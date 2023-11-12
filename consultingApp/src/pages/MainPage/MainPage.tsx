@@ -23,7 +23,7 @@ interface Data {
 
     const fetchData = async (maxPrice?: string) => {
         try {
-            const url = maxPrice ? `http://localhost:8080/consultations?maxPrice=${maxPrice}` : 'http://localhost:8080/consultations';
+            const url = maxPrice ? `/api/consultations?maxPrice=${maxPrice}` : '/api/consultations';
             const response = await fetch(url);
             if (!response.ok) {
                 throw new Error(`Ошибка при выполнении запроса: ${response.statusText}`);

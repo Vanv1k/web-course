@@ -34,10 +34,21 @@ services: # имеджи, которые запустятся по вашему 
       MINIO_ROOT_PASSWORD: 123456987
     command: server --console-address ":9001" /data
 
+  redis:
+    image: redis:6.2-alpine
+    restart: always
+    ports:
+      - '6379:6379'
+    command: redis-server --save 20 1 --loglevel warning --requirepass password
+    volumes:
+      - redis-data:/data
+
 networks:
   app_network:
     driver: bridge
 volumes: # часть настроек для хранения данных
   postgresdb-data:
+    driver: local
+  redis-data:
     driver: local
   minio-data:

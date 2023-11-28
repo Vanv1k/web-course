@@ -127,6 +127,18 @@ func (a *Application) StartServer() {
 		controller.DeleteConsultationRequest(a.repository, c)
 	})
 
+	r.POST("/login", func(c *gin.Context) {
+		controller.Login(a.repository, c)
+	})
+
+	r.POST("/registration", func(c *gin.Context) {
+		controller.Register(a.repository, c)
+	})
+
+	r.GET("/logout", func(c *gin.Context) {
+		controller.Logout(a.repository, c)
+	})
+
 	r.Run()
 
 	log.Println("Server down")

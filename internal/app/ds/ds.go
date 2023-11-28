@@ -35,6 +35,8 @@ type User struct {
 	Email       string `gorm:"unique;size:60"`
 	PhoneNumber string `gorm:"unique;size:11"`
 	Role        string `gorm:"size:60"`
+	Password    string `gorm:"size:60"`
+	Login       string `gorm:"unique;size:60"`
 }
 
 type ConsultationInfo struct {

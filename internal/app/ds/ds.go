@@ -1,6 +1,10 @@
 package ds
 
-import "time"
+import (
+	"time"
+
+	"github.com/Vanv1k/web-course/internal/app/role"
+)
 
 type Consultation struct {
 	Id          uint `gorm:"primarykey;autoIncrement"`
@@ -30,13 +34,13 @@ type Request struct {
 }
 
 type User struct {
-	Id          uint   `gorm:"primarykey"`
-	Name        string `gorm:"size:60"`
-	Email       string `gorm:"unique;size:60"`
-	PhoneNumber string `gorm:"unique;size:11"`
-	Role        string `gorm:"size:60"`
-	Password    string `gorm:"size:60"`
-	Login       string `gorm:"unique;size:60"`
+	Id          uint      `gorm:"primarykey"`
+	Name        string    `json:"name"`
+	Login       string    `json:"login"`
+	Email       string    `json:"email"`
+	PhoneNumber string    `json:"phoneNumber"`
+	Role        role.Role `sql:"type:string;"`
+	Password    string    `gorm:"size:60"`
 }
 
 type ConsultationInfo struct {

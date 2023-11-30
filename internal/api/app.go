@@ -1,21 +1,41 @@
 package app
 
 import (
+	"time"
+
 	"github.com/Vanv1k/web-course/internal/app/dsn"
 	"github.com/Vanv1k/web-course/internal/app/repository"
+	"github.com/golang-jwt/jwt"
 	"github.com/joho/godotenv"
+	"github.com/kelseyhightower/envconfig"
 )
 
 type Application struct {
+	config     *Config
 	repository *repository.Repository
 }
 
-func New() (Application, error) {
+type Config struct {
+	JWT struct {
+		Token         string
+		SigningMethod jwt.SigningMethod
+		ExpiresIn     time.Duration
+	}
+}
+
+func New() (*Application, error) {
 	_ = godotenv.Load()
-	repo, err := repository.New(dsn.SetConnectionString())
+
+	config := &Config{}
+	err := envconfig.Process("", config)
 	if err != nil {
-		return Application{}, err
+		return nil, err
 	}
 
-	return Application{repository: repo}, nil
+	repo, err := repository.New(dsn.SetConnectionString())
+	if err != nil {
+		return nil, err
+	}
+
+	return &Application{config: config, repository: repo}, nil
 }

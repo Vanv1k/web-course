@@ -8,6 +8,7 @@ import (
 
 	"github.com/Vanv1k/web-course/internal/app/controller"
 	"github.com/Vanv1k/web-course/internal/app/ds"
+	"github.com/Vanv1k/web-course/internal/app/role"
 	"github.com/gin-gonic/gin"
 
 	_ "github.com/lib/pq"
@@ -128,15 +129,29 @@ func (a *Application) StartServer() {
 	})
 
 	r.POST("/login", func(c *gin.Context) {
-		controller.Login(a.repository, c)
+		a.Login(c)
 	})
 
 	r.POST("/registration", func(c *gin.Context) {
-		controller.Register(a.repository, c)
+		a.Register(a.repository, c)
 	})
 
 	r.GET("/logout", func(c *gin.Context) {
-		controller.Logout(a.repository, c)
+		a.Logout(a.repository, c)
+	})
+
+	// r.Use(a.WithAuthCheck()).GET("/ping", func(c *gin.Context) {
+	// 	c.JSON(http.StatusOK, gin.H{
+	// 		"Status":  "OkNo",
+	// 		"Message": "GG",
+	// 	})
+	// })
+	// или ниженаписанное значит что доступ имеют менеджер и админ
+	r.Use(a.WithAuthCheck(role.Manager, role.Admin)).GET("/ping", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"Status":  "Ok",
+			"Message": "GG",
+		})
 	})
 
 	r.Run()

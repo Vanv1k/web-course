@@ -1,0 +1,690 @@
+basePath: /
+definitions:
+  app.loginReq:
+    properties:
+      login:
+        type: string
+      password:
+        type: string
+    type: object
+  app.loginResp:
+    properties:
+      access_token:
+        type: string
+      expires_in:
+        type: integer
+      token_type:
+        type: string
+    type: object
+  app.registerResp:
+    properties:
+      ok:
+        type: boolean
+    type: object
+  controller.Info:
+    properties:
+      name:
+        type: string
+      price:
+        type: integer
+    type: object
+  ds.Consultation:
+    properties:
+      description:
+        type: string
+      id:
+        type: integer
+      image:
+        type: string
+      name:
+        type: string
+      price:
+        type: integer
+      status:
+        type: string
+    type: object
+  ds.Request:
+    properties:
+      company_name:
+        type: string
+      consultation_place:
+        type: string
+      consultation_time:
+        type: string
+      endDate:
+        type: string
+      formationDate:
+        type: string
+      id:
+        type: integer
+      moderatorID:
+        type: integer
+      startDate:
+        type: string
+      status:
+        type: string
+      userID:
+        type: integer
+    type: object
+  ds.StatusData:
+    properties:
+      status:
+        type: string
+    type: object
+  ds.User:
+    properties:
+      email:
+        type: string
+      id:
+        type: integer
+      login:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+      phoneNumber:
+        type: string
+      role:
+        $ref: '#/definitions/role.Role'
+    type: object
+  role.Role:
+    enum:
+    - 0
+    - 1
+    - 2
+    type: integer
+    x-enum-comments:
+      Admin: "2"
+      Buyer: "0"
+      Manager: "1"
+    x-enum-varnames:
+    - Buyer
+    - Manager
+    - Admin
+host: localhost:8080
+info:
+  contact: {}
+  description: Consultation app
+  title: IT Services
+  version: "1.0"
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Login
+      operationId: login
+      parameters:
+      - description: login info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/app.loginReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/app.loginResp'
+      summary: Login
+      tags:
+      - auth
+  /auth/logout:
+    get:
+      description: Logout
+      operationId: logout
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Logout
+      tags:
+      - auth
+  /auth/registration:
+    post:
+      consumes:
+      - application/json
+      description: Registration
+      operationId: registration
+      parameters:
+      - description: user info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/ds.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/app.registerResp'
+      summary: Registration
+      tags:
+      - auth
+  /consultation-request/delete/consultation/{id_c}/request/{id_r}:
+    delete:
+      consumes:
+      - application/json
+      description: delete consultation from request
+      operationId: delete-consultation-from-request
+      parameters:
+      - description: ID консультации
+        in: path
+        name: id_c
+        required: true
+        type: integer
+      - description: ID заявки
+        in: path
+        name: id_r
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Консультация была удалена из заявки
+          schema:
+            type: string
+        "400":
+          description: Некорректный запрос
+          schema:
+            type: string
+        "404":
+          description: Некорректный запрос
+          schema:
+            type: string
+        "500":
+          description: Ошибка сервера
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: Delete Consultation From Request
+      tags:
+      - Consultation-Request
+  /consultations:
+    get:
+      description: Get all consultations
+      operationId: get-consultations
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ds.Consultation'
+        "400":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/ds.Consultation'
+        "404":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/ds.Consultation'
+        "500":
+          description: Ошибка сервера
+          schema:
+            $ref: '#/definitions/ds.Consultation'
+      summary: Get Consultations
+      tags:
+      - Consultations
+  /consultations/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Show consultation by ID
+      operationId: get-consultation-by-id
+      parameters:
+      - description: ID консультации
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ds.Consultation'
+        "400":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/ds.Consultation'
+        "404":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/ds.Consultation'
+        "500":
+          description: Ошибка сервера
+          schema:
+            $ref: '#/definitions/ds.Consultation'
+      summary: Get Consultation by ID
+      tags:
+      - Consultations
+  /consultations/{id}/add-to-request:
+    post:
+      consumes:
+      - application/json
+      description: add consultation to request
+      operationId: add-consultation-to-request
+      parameters:
+      - description: ID консультации
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/ds.Consultation'
+        "404":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/ds.Consultation'
+        "500":
+          description: Ошибка сервера
+          schema:
+            $ref: '#/definitions/ds.Consultation'
+      security:
+      - ApiKeyAuth: []
+      summary: add consultation to request
+      tags:
+      - Consultations
+  /consultations/{id}/addImage:
+    post:
+      consumes:
+      - application/json
+      description: Add an image to a specific consultation by ID.
+      operationId: add-consultation-image
+      parameters:
+      - description: ID консультации
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Image file to be uploaded
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/ds.Consultation'
+        "404":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/ds.Consultation'
+        "500":
+          description: Ошибка сервера
+          schema:
+            $ref: '#/definitions/ds.Consultation'
+      security:
+      - ApiKeyAuth: []
+      summary: Add consultation image
+      tags:
+      - Consultations
+  /consultations/create:
+    post:
+      consumes:
+      - application/json
+      description: create consultation
+      operationId: create-consultation
+      parameters:
+      - description: consultation info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/ds.Consultation'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/ds.Consultation'
+        "404":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/ds.Consultation'
+        "500":
+          description: Ошибка сервера
+          schema:
+            $ref: '#/definitions/ds.Consultation'
+      security:
+      - ApiKeyAuth: []
+      summary: create consultation
+      tags:
+      - Consultations
+  /consultations/delete/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete consultation by ID
+      operationId: delete-consultation-by-id
+      parameters:
+      - description: ID консультации
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/ds.Consultation'
+        "404":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/ds.Consultation'
+        "500":
+          description: Ошибка сервера
+          schema:
+            $ref: '#/definitions/ds.Consultation'
+      summary: Delete consultation by ID
+      tags:
+      - Consultations
+  /consultations/request/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Show consultation by ID of request
+      operationId: get-consultation-by-id-of-request
+      parameters:
+      - description: ID заявки
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.Info'
+        "400":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/ds.Consultation'
+        "404":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/ds.Consultation'
+        "500":
+          description: Ошибка сервера
+          schema:
+            $ref: '#/definitions/ds.Consultation'
+      security:
+      - ApiKeyAuth: []
+      summary: Get Consultation by request ID
+      tags:
+      - Consultations
+  /consultations/update/{id}:
+    put:
+      consumes:
+      - application/json
+      description: update consultation
+      operationId: update-consultation
+      parameters:
+      - description: ID консультации
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: consultation info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/ds.Consultation'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/ds.Consultation'
+        "404":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/ds.Consultation'
+        "500":
+          description: Ошибка сервера
+          schema:
+            $ref: '#/definitions/ds.Consultation'
+      security:
+      - ApiKeyAuth: []
+      summary: update consultation
+      tags:
+      - Consultations
+  /requests:
+    get:
+      description: Get all requests
+      operationId: get-requests
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/ds.Request'
+        "400":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/ds.Request'
+        "404":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/ds.Request'
+        "500":
+          description: Ошибка сервера
+          schema:
+            $ref: '#/definitions/ds.Request'
+      security:
+      - ApiKeyAuth: []
+      summary: Get Requests
+      tags:
+      - Requests
+  /requests/{id}/moderator/update-status:
+    put:
+      consumes:
+      - application/json
+      description: Update request by moderator
+      operationId: update-request-status-by-moderator
+      parameters:
+      - description: ID заявки
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: status info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/ds.StatusData'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/ds.Request'
+        "404":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/ds.Request'
+        "500":
+          description: Ошибка сервера
+          schema:
+            $ref: '#/definitions/ds.Request'
+      security:
+      - ApiKeyAuth: []
+      summary: Update Request Status By Moderator
+      tags:
+      - Requests
+  /requests/{id}/user/update-status:
+    put:
+      consumes:
+      - application/json
+      description: Update request status by user
+      operationId: update-request-status-by-user
+      parameters:
+      - description: ID заявки
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/ds.Request'
+        "404":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/ds.Request'
+        "500":
+          description: Ошибка сервера
+          schema:
+            $ref: '#/definitions/ds.Request'
+      security:
+      - ApiKeyAuth: []
+      summary: Update Request Status By User
+      tags:
+      - Requests
+  /requests/delete/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete request by ID
+      operationId: delete-request-by-id
+      parameters:
+      - description: ID заявки
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/ds.Request'
+        "404":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/ds.Request'
+        "500":
+          description: Ошибка сервера
+          schema:
+            $ref: '#/definitions/ds.Request'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete Request by ID
+      tags:
+      - Requests
+  /requests/update/{id}:
+    put:
+      consumes:
+      - application/json
+      description: Update request by ID
+      operationId: update-request-by-id
+      parameters:
+      - description: ID заявки
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: request info
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/ds.Request'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/ds.Request'
+        "404":
+          description: Некорректный запрос
+          schema:
+            $ref: '#/definitions/ds.Request'
+        "500":
+          description: Ошибка сервера
+          schema:
+            $ref: '#/definitions/ds.Request'
+      security:
+      - ApiKeyAuth: []
+      summary: Update Request by ID
+      tags:
+      - Requests
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

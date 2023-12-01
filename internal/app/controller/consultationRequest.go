@@ -4,46 +4,59 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/Vanv1k/web-course/internal/app/repository"
 	"github.com/gin-gonic/gin"
 )
 
-func DeleteConsultationRequest(repository *repository.Repository, c *gin.Context) {
+// @Summary Delete Consultation From Request
+// @Security ApiKeyAuth
+// @Description delete consultation from request
+// @Tags Consultation-Request
+// @ID delete-consultation-from-request
+// @Accept       json
+// @Produce      json
+// @Param        id_c   path      int  true  "ID консультации"
+// @Param        id_r   path      int  true  "ID заявки"
+// @Success 200 {string} string "Консультация была удалена из заявки"
+// @Failure 400 {string} string "Некорректный запрос"
+// @Failure 404 {string} string "Некорректный запрос"
+// @Failure 500 {string} string "Ошибка сервера"
+// @Router /consultation-request/delete/consultation/{id_c}/request/{id_r} [delete]
+func (c *Controller) DeleteConsultationRequest(gctx *gin.Context) {
 	var idC, idR int
 	var err error
-	idC, err = strconv.Atoi(c.Param("id_c"))
+	idC, err = strconv.Atoi(gctx.Param("id_c"))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err)
+		gctx.JSON(http.StatusInternalServerError, err)
 		return
 	}
 
 	if idC < 0 {
-		c.JSON(http.StatusBadRequest, gin.H{
+		gctx.JSON(http.StatusBadRequest, gin.H{
 			"Status":  "Failed",
 			"Message": "неверное значение id консультации",
 		})
 		return
 	}
 
-	idR, err = strconv.Atoi(c.Param("id_r"))
+	idR, err = strconv.Atoi(gctx.Param("id_r"))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err)
+		gctx.JSON(http.StatusInternalServerError, err)
 		return
 	}
 
 	if idR < 0 {
-		c.JSON(http.StatusBadRequest, gin.H{
+		gctx.JSON(http.StatusBadRequest, gin.H{
 			"Status":  "Failed",
 			"Message": "неверное значение id заявки",
 		})
 		return
 	}
 
-	err = repository.DeleteConsultationRequest(idC, idR)
+	err = c.Repo.DeleteConsultationRequest(idC, idR)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, err)
+		gctx.JSON(http.StatusBadRequest, err)
 		return
 	}
-	c.JSON(http.StatusOK, "deleted successful")
+	gctx.JSON(http.StatusOK, "deleted successful")
 }

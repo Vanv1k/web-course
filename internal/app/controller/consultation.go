@@ -7,61 +7,85 @@ import (
 	"strconv"
 
 	"github.com/Vanv1k/web-course/internal/app/ds"
-	"github.com/Vanv1k/web-course/internal/app/repository"
 	"github.com/gin-gonic/gin"
 )
 
-func GetConsultationByID(repository *repository.Repository, c *gin.Context) {
+// @Summary Get Consultation by ID
+// @Description Show consultation by ID
+// @Tags Consultations
+// @ID get-consultation-by-id
+// @Accept       json
+// @Produce      json
+// @Param        id   path      int  true  "ID консультации"
+// @Success 200 {object} ds.Consultation
+// @Failure 400 {object} ds.Consultation "Некорректный запрос"
+// @Failure 404 {object} ds.Consultation "Некорректный запрос"
+// @Failure 500 {object} ds.Consultation "Ошибка сервера"
+// @Router /consultations/{id} [get]
+func (c *Controller) GetConsultationByID(gctx *gin.Context) {
 	var consultation *ds.Consultation
 
-	id, err := strconv.Atoi(c.Param("id"))
+	id, err := strconv.Atoi(gctx.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err)
+		gctx.JSON(http.StatusInternalServerError, err)
 		return
 	}
 
 	if id < 0 {
-		c.JSON(http.StatusBadRequest, gin.H{
+		gctx.JSON(http.StatusBadRequest, gin.H{
 			"Status":  "Failed",
 			"Message": "неверное значение id",
 		})
 		return
 	}
 
-	consultation, err = repository.GetConsultationByID(uint(id))
+	consultation, err = c.Repo.GetConsultationByID(uint(id))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err)
+		gctx.JSON(http.StatusInternalServerError, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, consultation)
+	gctx.JSON(http.StatusOK, consultation)
 }
 
-func GetConsultationsByRequestID(repository *repository.Repository, c *gin.Context) {
+type Info struct {
+	Name  string
+	Price int
+}
+
+// @Summary Get Consultation by request ID
+// @Security ApiKeyAuth
+// @Description Show consultation by ID of request
+// @Tags Consultations
+// @ID get-consultation-by-id-of-request
+// @Accept       json
+// @Produce      json
+// @Param        id   path      int  true  "ID заявки"
+// @Success 200 {object} Info
+// @Failure 400 {object} ds.Consultation "Некорректный запрос"
+// @Failure 404 {object} ds.Consultation "Некорректный запрос"
+// @Failure 500 {object} ds.Consultation "Ошибка сервера"
+// @Router /consultations/request/{id} [get]
+func (c *Controller) GetConsultationsByRequestID(gctx *gin.Context) {
 	var consultationInfo ds.ConsultationInfo
 
-	id, err := strconv.Atoi(c.Param("id"))
+	id, err := strconv.Atoi(gctx.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err)
+		gctx.JSON(http.StatusInternalServerError, err)
 		return
 	}
 	if id < 0 {
-		c.JSON(http.StatusBadRequest, gin.H{
+		gctx.JSON(http.StatusBadRequest, gin.H{
 			"Status":  "Failed",
 			"Message": "неверное значение id",
 		})
 		return
 	}
 
-	consultationInfo, err = repository.GetConsultationsByRequestID(id)
+	consultationInfo, err = c.Repo.GetConsultationsByRequestID(id)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err)
+		gctx.JSON(http.StatusInternalServerError, err)
 		return
-	}
-
-	type Info struct {
-		Name  string
-		Price int
 	}
 
 	var result []Info
@@ -72,11 +96,21 @@ func GetConsultationsByRequestID(repository *repository.Repository, c *gin.Conte
 		}
 		result = append(result, consultation)
 	}
-	c.JSON(http.StatusOK, result)
+	gctx.JSON(http.StatusOK, result)
 }
 
-func GetAllConsultations(repository *repository.Repository, c *gin.Context) {
-	maxPriceStr := c.DefaultQuery("maxPrice", "")
+// @Summary Get Consultations
+// @Description Get all consultations
+// @Tags Consultations
+// @ID get-consultations
+// @Produce json
+// @Success 200 {object} ds.Consultation
+// @Failure 400 {object} ds.Consultation "Некорректный запрос"
+// @Failure 404 {object} ds.Consultation "Некорректный запрос"
+// @Failure 500 {object} ds.Consultation "Ошибка сервера"
+// @Router /consultations [get]
+func (c *Controller) GetAllConsultations(gctx *gin.Context) {
+	maxPriceStr := gctx.DefaultQuery("maxPrice", "")
 	var consultations []ds.Consultation
 	var err error
 	var userRequestId uint
@@ -85,95 +119,134 @@ func GetAllConsultations(repository *repository.Repository, c *gin.Context) {
 	if maxPriceStr != "" {
 		maxPrice, err = strconv.Atoi(maxPriceStr)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, err)
+			gctx.JSON(http.StatusInternalServerError, err)
 			return
 		}
 
-		consultations, userRequestId, err = repository.GetConsultationsByPrice(maxPrice)
+		consultations, userRequestId, err = c.Repo.GetConsultationsByPrice(maxPrice)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, err)
+			gctx.JSON(http.StatusInternalServerError, err)
 			return
 		}
 
-		c.JSON(http.StatusOK, gin.H{
+		gctx.JSON(http.StatusOK, gin.H{
 			"consultation":    consultations,
 			"ActiveRequestId": userRequestId,
 		})
 		return
 	}
 
-	consultations, userRequestId, err = repository.GetAllConsultations()
+	consultations, userRequestId, err = c.Repo.GetAllConsultations()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err)
+		gctx.JSON(http.StatusInternalServerError, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	gctx.JSON(http.StatusOK, gin.H{
 		"consultation":    consultations,
 		"ActiveRequestId": userRequestId,
 	})
 }
 
-func DeleteConsultation(repository *repository.Repository, c *gin.Context) {
+// @Summary Delete consultation by ID
+// @Security ApiKeyAuth
+// @Description Delete consultation by ID
+// @Tags Consultations
+// @ID delete-consultation-by-id
+// @Accept       json
+// @Produce      json
+// @Param        id   path      int  true  "ID консультации"
+// @Success 200 {string} string
+// @Failure 400 {object} ds.Consultation "Некорректный запрос"
+// @Failure 404 {object} ds.Consultation "Некорректный запрос"
+// @Failure 500 {object} ds.Consultation "Ошибка сервера"
+// @Router /consultations/delete/{id} [delete]
+func (c *Controller) DeleteConsultation(gctx *gin.Context) {
 
-	id, err := strconv.Atoi(c.Param("id"))
+	id, err := strconv.Atoi(gctx.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err)
+		gctx.JSON(http.StatusInternalServerError, err)
 		return
 	}
 
 	if id < 0 {
-		c.JSON(http.StatusBadRequest, gin.H{
+		gctx.JSON(http.StatusBadRequest, gin.H{
 			"Status":  "Failed",
 			"Message": "неверное значение id",
 		})
 		return
 	}
 
-	err = repository.DeleteConsultation(id)
-
+	err = c.Repo.DeleteConsultation(id)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, err)
+		gctx.JSON(http.StatusBadRequest, err)
 		return
 	}
-	c.JSON(http.StatusOK, "deleted successful")
+	gctx.JSON(http.StatusOK, "deleted successful")
 }
 
-func CreateConsultation(repository *repository.Repository, c *gin.Context) {
+// @Summary create consultation
+// @Security ApiKeyAuth
+// @Description create consultation
+// @Tags Consultations
+// @ID create-consultation
+// @Accept json
+// @Produce json
+// @Param input body ds.Consultation true "consultation info"
+// @Success 200 {string} string
+// @Failure 400 {object} ds.Consultation "Некорректный запрос"
+// @Failure 404 {object} ds.Consultation "Некорректный запрос"
+// @Failure 500 {object} ds.Consultation "Ошибка сервера"
+// @Router /consultations/create [post]
+func (c *Controller) CreateConsultation(gctx *gin.Context) {
 	var consultation ds.Consultation
 
 	// Попробуйте извлечь JSON-данные из тела запроса и привести их к структуре Consultation
-	if err := c.ShouldBindJSON(&consultation); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
+	if err := gctx.ShouldBindJSON(&consultation); err != nil {
+		gctx.JSON(http.StatusBadRequest, gin.H{
 			"Status":  "Failed",
 			"Message": "неверные данные консультации",
 		})
 		return
 	}
 
-	err := repository.CreateConsultation(consultation)
+	err := c.Repo.CreateConsultation(consultation)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err)
+		gctx.JSON(http.StatusInternalServerError, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	gctx.JSON(http.StatusOK, gin.H{
 		"consultation": consultation,
 		"status":       "added",
 	})
 }
 
-func UpdateConsultation(repository *repository.Repository, c *gin.Context) {
+// @Summary update consultation
+// @Security ApiKeyAuth
+// @Description update consultation
+// @Tags Consultations
+// @ID update-consultation
+// @Accept       json
+// @Produce      json
+// @Param        id   path      int  true  "ID консультации"
+// @Param input body ds.Consultation true "consultation info"
+// @Success 200 {string} string
+// @Failure 400 {object} ds.Consultation "Некорректный запрос"
+// @Failure 404 {object} ds.Consultation "Некорректный запрос"
+// @Failure 500 {object} ds.Consultation "Ошибка сервера"
+// @Router /consultations/update/{id} [put]
+func (c *Controller) UpdateConsultation(gctx *gin.Context) {
 	// Извлекаем id консультации из параметра запроса
-	id, err := strconv.Atoi(c.Param("id"))
+	id, err := strconv.Atoi(gctx.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err)
+		gctx.JSON(http.StatusInternalServerError, err)
 		return
 	}
 
 	// Проверяем, что id неотрицательный
 	if id < 0 {
-		c.JSON(http.StatusBadRequest, gin.H{
+		gctx.JSON(http.StatusBadRequest, gin.H{
 			"Status":  "Failed",
 			"Message": "неверное значение id",
 		})
@@ -182,8 +255,8 @@ func UpdateConsultation(repository *repository.Repository, c *gin.Context) {
 
 	// Попробуем извлечь JSON-данные из тела запроса и привести их к структуре Consultation
 	var updatedConsultation ds.Consultation
-	if err := c.ShouldBindJSON(&updatedConsultation); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
+	if err := gctx.ShouldBindJSON(&updatedConsultation); err != nil {
+		gctx.JSON(http.StatusBadRequest, gin.H{
 			"Status":  "Failed",
 			"Message": "неверные данные консультации",
 		})
@@ -191,91 +264,118 @@ func UpdateConsultation(repository *repository.Repository, c *gin.Context) {
 	}
 	fmt.Println(updatedConsultation)
 	// Обновляем консультацию в репозитории
-	err = repository.UpdateConsultation(id, updatedConsultation)
+	err = c.Repo.UpdateConsultation(id, updatedConsultation)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err)
+		gctx.JSON(http.StatusInternalServerError, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	gctx.JSON(http.StatusOK, gin.H{
 		"status": "updated",
 	})
 }
 
-func AddConsultationToRequest(repository *repository.Repository, c *gin.Context) {
+// @Summary add consultation to request
+// @Security ApiKeyAuth
+// @Description add consultation to request
+// @Tags Consultations
+// @ID add-consultation-to-request
+// @Accept       json
+// @Produce      json
+// @Param        id   path      int  true  "ID консультации"
+// @Success 200 {string} string
+// @Failure 400 {object} ds.Consultation "Некорректный запрос"
+// @Failure 404 {object} ds.Consultation "Некорректный запрос"
+// @Failure 500 {object} ds.Consultation "Ошибка сервера"
+// @Router /consultations/{id}/add-to-request [post]
+func (c *Controller) AddConsultationToRequest(gctx *gin.Context) {
 
-	id, err := strconv.Atoi(c.Param("id"))
+	id, err := strconv.Atoi(gctx.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err)
+		gctx.JSON(http.StatusInternalServerError, err)
 		return
 	}
 
 	if id < 0 {
-		c.JSON(http.StatusBadRequest, gin.H{
+		gctx.JSON(http.StatusBadRequest, gin.H{
 			"Status":  "Failed",
 			"Message": "неверное значение id",
 		})
 		return
 	}
 
-	err = repository.AddConsultationToRequest(id, 1)
+	err = c.Repo.AddConsultationToRequest(id, 1)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
+		gctx.JSON(http.StatusInternalServerError, gin.H{
 			"Status":  "Failed",
 			"Message": "неверное значение id",
 		})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	gctx.JSON(http.StatusOK, gin.H{
 		"status": "added to request",
 	})
 }
 
-func AddConsultationImage(repository *repository.Repository, c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
+// @Summary Add consultation image
+// @Security ApiKeyAuth
+// @Description Add an image to a specific consultation by ID.
+// @Tags Consultations
+// @ID add-consultation-image
+// @Accept       json
+// @Produce      json
+// @Param        id   path      int  true  "ID консультации"
+// @Param image formData file true "Image file to be uploaded"
+// @Success 200 {string} string
+// @Failure 400 {object} ds.Consultation "Некорректный запрос"
+// @Failure 404 {object} ds.Consultation "Некорректный запрос"
+// @Failure 500 {object} ds.Consultation "Ошибка сервера"
+// @Router /consultations/{id}/addImage [post]
+func (c *Controller) AddConsultationImage(gctx *gin.Context) {
+	id, err := strconv.Atoi(gctx.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err)
+		gctx.JSON(http.StatusInternalServerError, err)
 		return
 	}
 
 	if id < 0 {
-		c.JSON(http.StatusBadRequest, gin.H{
+		gctx.JSON(http.StatusBadRequest, gin.H{
 			"Status":  "Failed",
 			"Message": "неверное значение id",
 		})
 		return
 	}
 	// Чтение изображения из запроса
-	image, err := c.FormFile("image")
+	image, err := gctx.FormFile("image")
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid image"})
+		gctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid image"})
 		return
 	}
 
 	// Чтение содержимого изображения в байтах
 	file, err := image.Open()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка при открытии"})
+		gctx.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка при открытии"})
 		return
 	}
 	defer file.Close()
 
 	imageBytes, err := io.ReadAll(file)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка чтения"})
+		gctx.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка чтения"})
 		return
 	}
 	// Получение Content-Type из заголовков запроса
 	contentType := image.Header.Get("Content-Type")
 
 	// Вызов функции репозитория для добавления изображения
-	err = repository.AddConsultationImage(id, imageBytes, contentType)
+	err = c.Repo.AddConsultationImage(id, imageBytes, contentType)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка сервера"})
+		gctx.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка сервера"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Image uploaded successfully"})
+	gctx.JSON(http.StatusOK, gin.H{"message": "Image uploaded successfully"})
 
 }

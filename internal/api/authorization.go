@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/Vanv1k/web-course/internal/app/ds"
-	"github.com/Vanv1k/web-course/internal/app/repository"
 	"github.com/Vanv1k/web-course/internal/app/role"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
@@ -29,7 +28,16 @@ type registerResp struct {
 	Ok bool `json:"ok"`
 }
 
-func (a *Application) Register(repository *repository.Repository, c *gin.Context) {
+// @Summary Registration
+// @Description Registration
+// @Tags auth
+// @ID registration
+// @Accept json
+// @Produce json
+// @Param input body ds.User true "user info"
+// @Success 200 {object} registerResp
+// @Router /auth/registration [post]
+func (a *Application) Register(c *gin.Context) {
 	req := &registerReq{}
 
 	err := json.NewDecoder(c.Request.Body).Decode(req)
@@ -63,7 +71,7 @@ func (a *Application) Register(repository *repository.Repository, c *gin.Context
 		return
 	}
 
-	err = repository.Register(&ds.User{
+	err = a.repository.Register(&ds.User{
 		Role:        role.Buyer,
 		Name:        req.Name,
 		Login:       req.Login,
@@ -87,7 +95,15 @@ func generateHashString(s string) string {
 	return hex.EncodeToString(h.Sum(nil))
 }
 
-func (a *Application) Logout(repository *repository.Repository, gCtx *gin.Context) {
+// @Summary Logout
+// @Security ApiKeyAuth
+// @Description Logout
+// @Tags auth
+// @ID logout
+// @Produce json
+// @Success 200 {string} string
+// @Router /auth/logout [get]
+func (a *Application) Logout(gCtx *gin.Context) {
 	// получаем заголовок
 	jwtStr := gCtx.GetHeader("Authorization")
 	if !strings.HasPrefix(jwtStr, jwtPrefix) { // если нет префикса то нас дурят!
@@ -126,11 +142,20 @@ type loginReq struct {
 }
 
 type loginResp struct {
-	ExpiresIn   time.Duration `json:"expires_in"`
-	AccessToken string        `json:"access_token"`
-	TokenType   string        `json:"token_type"`
+	ExpiresIn   int    `json:"expires_in"`
+	AccessToken string `json:"access_token"`
+	TokenType   string `json:"token_type"`
 }
 
+// @Summary Login
+// @Description Login
+// @Tags auth
+// @ID login
+// @Accept json
+// @Produce json
+// @Param input body loginReq true "login info"
+// @Success 200 {object} loginResp
+// @Router /auth/login [post]
 func (a *Application) Login(gCtx *gin.Context) {
 	cfg := a.config
 	req := &loginReq{}
@@ -174,7 +199,7 @@ func (a *Application) Login(gCtx *gin.Context) {
 		}
 
 		gCtx.JSON(http.StatusOK, loginResp{
-			ExpiresIn:   cfg.JWT.ExpiresIn,
+			ExpiresIn:   int(cfg.JWT.ExpiresIn.Seconds()),
 			AccessToken: strToken,
 			TokenType:   "Bearer",
 		})

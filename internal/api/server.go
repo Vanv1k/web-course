@@ -2,15 +2,13 @@ package app
 
 import (
 	"log"
-	"net/http"
-	"strconv"
-	"strings"
 
 	"github.com/Vanv1k/web-course/internal/app/controller"
-	"github.com/Vanv1k/web-course/internal/app/ds"
-	"github.com/Vanv1k/web-course/internal/app/role"
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 
+	_ "github.com/Vanv1k/web-course/docs"
 	_ "github.com/lib/pq"
 )
 
@@ -19,140 +17,72 @@ func (a *Application) StartServer() {
 
 	r := gin.Default()
 
-	r.Static("/styles", "./resources/styles")
-	r.Static("/js", "./resources/js")
-	r.Static("/img", "./resources/img")
-	r.Static("/hacker", "./resources")
-	r.LoadHTMLGlob("templates/*")
+	c := controller.NewController(a.repository)
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	r.GET("/", func(c *gin.Context) {
-		var consultations []ds.Consultation
-		consultations, _, err := a.repository.GetAllConsultations()
-		if err != nil { // если не получилось
-			log.Printf("cant get product by id %v", err)
-			return
-		}
-		searchQuery := c.DefaultQuery("fsearch", "")
+	// r.POST("auth/login", a.Login)
 
-		if searchQuery == "" {
-			c.HTML(http.StatusOK, "index.tmpl", gin.H{
-				"services": consultations,
-			})
-			return
-		}
+	// r.POST("auth/registration", a.Register)
 
-		var result []ds.Consultation
+	// r.GET("auth/logout", a.Logout)
 
-		for _, consultation := range consultations {
-			if strings.Contains(strings.ToLower(consultation.Name), strings.ToLower(searchQuery)) {
-				result = append(result, consultation)
-			}
-		}
+	// r.GET("/consultations", c.GetAllConsultations)
+	// r.GET("/consultations/:id", c.GetConsultationByID)
+	// r.Use(a.WithAuthCheck(role.Manager, role.Admin)).DELETE("/consultations/delete/:id", c.DeleteConsultation)
+	// r.Use(a.WithAuthCheck(role.Manager, role.Admin)).POST("/consultations/create", c.CreateConsultation)
+	// r.Use(a.WithAuthCheck(role.Manager, role.Admin)).PUT("/consultations/update/:id", c.UpdateConsultation)
+	// r.Use(a.WithAuthCheck(role.Buyer)).POST("/consultations/:id/add-to-request", c.AddConsultationToRequest)
+	// r.Use(a.WithAuthCheck(role.Manager, role.Admin)).POST("consultations/:id/addImage", c.AddConsultationImage)
+	// r.Use(a.WithAuthCheck(role.Buyer)).GET("/consultations/request/:id", c.GetConsultationsByRequestID)
 
-		c.HTML(http.StatusOK, "index.tmpl", gin.H{
-			"services":    result,
-			"search_text": searchQuery,
-		})
-	})
+	// r.Use(a.WithAuthCheck(role.Manager, role.Admin)).GET("/requests", c.GetAllRequests)
+	// r.Use(a.WithAuthCheck(role.Buyer)).DELETE("/requests/delete/:id", c.DeleteRequest)
+	// r.Use(a.WithAuthCheck(role.Buyer)).PUT("/requests/update/:id", c.UpdateRequest)
+	// r.Use(a.WithAuthCheck(role.Buyer)).PUT("/requests/:id/user/update-status", c.UpdateRequestStatusToSendedByUser)
+	// r.Use(a.WithAuthCheck(role.Manager, role.Admin)).PUT("/requests/:id/moderator/update-status", c.UpdateRequestStatus)
 
-	r.POST("/delete/:id", func(c *gin.Context) {
-		id, err := strconv.Atoi(c.Param("id"))
+	// r.Use(a.WithAuthCheck(role.Buyer)).DELETE("/consultation-request/delete/consultation/:id_c/request/:id_r", c.DeleteConsultationRequest)
 
-		if err != nil {
-			// Обработка ошибки
-			log.Printf("cant get consultation by id %v", err)
-			c.Redirect(http.StatusMovedPermanently, "/")
-		}
-		a.repository.DeleteConsultation(id)
-		c.Redirect(http.StatusMovedPermanently, "/")
-	})
-
-	r.GET("/service/:id", func(c *gin.Context) {
-		var consultation *ds.Consultation
-
-		id, err := strconv.Atoi(c.Param("id"))
-		consultation, err = a.repository.GetConsultationByID(uint(id))
-		if err != nil {
-			// Обработка ошибки
-			log.Printf("cant get service by id %v", err)
-			return
-		}
-
-		c.HTML(http.StatusOK, "card.tmpl", consultation)
-	})
-
-	//------------------------------------------------------------------------------
-	r.GET("/consultations", func(c *gin.Context) {
-		controller.GetAllConsultations(a.repository, c)
-	})
-	r.GET("/consultations/:id", func(c *gin.Context) {
-		controller.GetConsultationByID(a.repository, c)
-	})
-	r.DELETE("/consultations/delete/:id", func(c *gin.Context) {
-		controller.DeleteConsultation(a.repository, c)
-	})
-	r.POST("/consultations/create", func(c *gin.Context) {
-		controller.CreateConsultation(a.repository, c)
-	})
-	r.PUT("/consultations/update/:id", func(c *gin.Context) {
-		controller.UpdateConsultation(a.repository, c)
-	})
-	r.POST("/consultations/:id/add-to-request", func(c *gin.Context) {
-		controller.AddConsultationToRequest(a.repository, c)
-	})
-
-	r.POST("consultations/:id/addImage", func(c *gin.Context) {
-		controller.AddConsultationImage(a.repository, c)
-	})
-
-	r.GET("/requests", func(c *gin.Context) {
-		controller.GetAllRequests(a.repository, c)
-	})
-	r.GET("/requests/:id", func(c *gin.Context) {
-		controller.GetConsultationsByRequestID(a.repository, c)
-	})
-	r.DELETE("/requests/delete/:id", func(c *gin.Context) {
-		controller.DeleteRequest(a.repository, c)
-	})
-	r.PUT("/requests/update/:id", func(c *gin.Context) {
-		controller.UpdateRequest(a.repository, c)
-	})
-	r.PUT("/requests/:id/user/update-status", func(c *gin.Context) {
-		controller.UpdateRequestStatusToSendedByUser(a.repository, c)
-	})
-	r.PUT("/requests/:id/moderator/update-status", func(c *gin.Context) {
-		controller.UpdateRequestStatus(a.repository, c)
-	})
-
-	r.DELETE("/consultation-request/delete/consultation/:id_c/request/:id_r", func(c *gin.Context) {
-		controller.DeleteConsultationRequest(a.repository, c)
-	})
-
-	r.POST("/login", func(c *gin.Context) {
-		a.Login(c)
-	})
-
-	r.POST("/registration", func(c *gin.Context) {
-		a.Register(a.repository, c)
-	})
-
-	r.GET("/logout", func(c *gin.Context) {
-		a.Logout(a.repository, c)
-	})
-
-	// r.Use(a.WithAuthCheck()).GET("/ping", func(c *gin.Context) {
+	// r.Use(a.WithAuthCheck(role.Manager, role.Admin)).GET("/ping", func(c *gin.Context) {
 	// 	c.JSON(http.StatusOK, gin.H{
-	// 		"Status":  "OkNo",
+	// 		"Status":  "Ok",
 	// 		"Message": "GG",
 	// 	})
 	// })
-	// или ниженаписанное значит что доступ имеют менеджер и админ
-	r.Use(a.WithAuthCheck(role.Manager, role.Admin)).GET("/ping", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"Status":  "Ok",
-			"Message": "GG",
-		})
-	})
+
+	AuthGroup := r.Group("/auth")
+	{
+		AuthGroup.POST("/registration", a.Register)
+		AuthGroup.POST("/login", a.Login)
+		AuthGroup.GET("/logout", a.Logout)
+
+	}
+
+	ConsultationGroup := r.Group("/consultations")
+	{
+		ConsultationGroup.GET("/", c.GetAllConsultations)
+		ConsultationGroup.GET("/:id", c.GetConsultationByID)
+		ConsultationGroup.GET("/request/:id", c.GetConsultationsByRequestID)
+		ConsultationGroup.DELETE("/delete/:id", c.DeleteConsultation)
+		ConsultationGroup.PUT("/update/:id", c.UpdateConsultation)
+		ConsultationGroup.POST("/create", c.CreateConsultation)
+		ConsultationGroup.POST("/:id/add-to-request", c.AddConsultationToRequest)
+		ConsultationGroup.POST("/:id/addImage", c.AddConsultationImage)
+	}
+
+	RequestGroup := r.Group("/requests")
+	{
+		RequestGroup.GET("/", c.GetAllRequests)
+		RequestGroup.DELETE("/delete/:id", c.DeleteRequest)
+		RequestGroup.PUT("/update/:id", c.UpdateRequest)
+		RequestGroup.PUT("/:id/user/update-status", c.UpdateRequestStatusToSendedByUser)
+		RequestGroup.PUT("/:id/moderator/update-status", c.UpdateRequestStatus)
+	}
+
+	ConsultationRequestGroup := r.Group("/consultation-request")
+	{
+		ConsultationRequestGroup.DELETE("/delete/consultation/:id_c/request/:id_r", c.DeleteConsultationRequest)
+	}
 
 	r.Run()
 

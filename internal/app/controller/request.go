@@ -7,25 +7,35 @@ import (
 	"time"
 
 	"github.com/Vanv1k/web-course/internal/app/ds"
-	"github.com/Vanv1k/web-course/internal/app/repository"
 	"github.com/gin-gonic/gin"
 )
 
-func GetAllRequests(repository *repository.Repository, c *gin.Context) {
-	status := c.DefaultQuery("status", "")
-	startFormationDateStr := c.DefaultQuery("startDate", "")
-	endFormationDateStr := c.DefaultQuery("endDate", "")
+// @Summary Get Requests
+// @Security ApiKeyAuth
+// @Description Get all requests
+// @Tags Requests
+// @ID get-requests
+// @Produce json
+// @Success 200 {object} ds.Request
+// @Failure 400 {object} ds.Request "Некорректный запрос"
+// @Failure 404 {object} ds.Request "Некорректный запрос"
+// @Failure 500 {object} ds.Request "Ошибка сервера"
+// @Router /requests [get]
+func (c *Controller) GetAllRequests(gctx *gin.Context) {
+	status := gctx.DefaultQuery("status", "")
+	startFormationDateStr := gctx.DefaultQuery("startDate", "")
+	endFormationDateStr := gctx.DefaultQuery("endDate", "")
 	var requests []ds.Request
 	var err error
 
 	if status != "" {
-		requests, err = repository.GetRequestsByStatus(status)
+		requests, err = c.Repo.GetRequestsByStatus(status)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, err)
+			gctx.JSON(http.StatusInternalServerError, err)
 			return
 		}
 
-		c.JSON(http.StatusOK, requests)
+		gctx.JSON(http.StatusOK, requests)
 		return
 	}
 	log.Println(startFormationDateStr + "ASSDA")
@@ -36,98 +46,99 @@ func GetAllRequests(repository *repository.Repository, c *gin.Context) {
 		startFormationDate, err = time.Parse(layout, startFormationDateStr)
 		log.Println(startFormationDate)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, err)
+			gctx.JSON(http.StatusInternalServerError, err)
 			return
 		}
 		if endFormationDateStr != "" {
 			endFormationDate, err = time.Parse(layout, endFormationDateStr)
 
 			if err != nil {
-				c.JSON(http.StatusInternalServerError, err)
+				gctx.JSON(http.StatusInternalServerError, err)
 				return
 			}
 		}
 
-		requests, err = repository.GetRequestsByDate(startFormationDate, endFormationDate)
+		requests, err = c.Repo.GetRequestsByDate(startFormationDate, endFormationDate)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, err)
+			gctx.JSON(http.StatusInternalServerError, err)
 			return
 		}
 
-		c.JSON(http.StatusOK, requests)
+		gctx.JSON(http.StatusOK, requests)
 		return
 	}
 	log.Println("go here")
-	requests, err = repository.GetAllRequests()
+	requests, err = c.Repo.GetAllRequests()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err)
+		gctx.JSON(http.StatusInternalServerError, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, requests)
+	gctx.JSON(http.StatusOK, requests)
 }
 
-func GetRequestByID(repository *repository.Repository, c *gin.Context) {
-	var request *ds.Request
+// @Summary Delete Request by ID
+// @Security ApiKeyAuth
+// @Description Delete request by ID
+// @Tags Requests
+// @ID delete-request-by-id
+// @Accept       json
+// @Produce      json
+// @Param        id   path      int  true  "ID заявки"
+// @Success 200 {string} string
+// @Failure 400 {object} ds.Request "Некорректный запрос"
+// @Failure 404 {object} ds.Request "Некорректный запрос"
+// @Failure 500 {object} ds.Request "Ошибка сервера"
+// @Router /requests/delete/{id} [delete]
+func (c *Controller) DeleteRequest(gctx *gin.Context) {
 
-	id, err := strconv.Atoi(c.Param("id"))
+	id, err := strconv.Atoi(gctx.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err)
+		gctx.JSON(http.StatusInternalServerError, err)
 		return
 	}
 
 	if id < 0 {
-		c.JSON(http.StatusBadRequest, gin.H{
+		gctx.JSON(http.StatusBadRequest, gin.H{
 			"Status":  "Failed",
 			"Message": "неверное значение id",
 		})
 		return
 	}
 
-	request, err = repository.GetRequestByID(id)
+	err = c.Repo.DeleteRequest(id)
+
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err)
+		gctx.JSON(http.StatusBadRequest, err)
 		return
 	}
-
-	c.JSON(http.StatusOK, request)
+	gctx.JSON(http.StatusOK, "deleted successful")
 }
 
-func DeleteRequest(repository *repository.Repository, c *gin.Context) {
-
-	id, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, err)
-		return
-	}
-
-	if id < 0 {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"Status":  "Failed",
-			"Message": "неверное значение id",
-		})
-		return
-	}
-
-	err = repository.DeleteRequest(id)
-
-	if err != nil {
-		c.JSON(http.StatusBadRequest, err)
-		return
-	}
-	c.JSON(http.StatusOK, "deleted successful")
-}
-
-func UpdateRequest(repository *repository.Repository, c *gin.Context) {
+// @Summary Update Request by ID
+// @Security ApiKeyAuth
+// @Description Update request by ID
+// @Tags Requests
+// @ID update-request-by-id
+// @Accept       json
+// @Produce      json
+// @Param        id   path      int  true  "ID заявки"
+// @Param input body ds.Request true "request info"
+// @Success 200 {string} string
+// @Failure 400 {object} ds.Request "Некорректный запрос"
+// @Failure 404 {object} ds.Request "Некорректный запрос"
+// @Failure 500 {object} ds.Request "Ошибка сервера"
+// @Router /requests/update/{id} [put]
+func (c *Controller) UpdateRequest(gctx *gin.Context) {
 	// Извлекаем id request из параметра запроса
-	id, err := strconv.Atoi(c.Param("id"))
+	id, err := strconv.Atoi(gctx.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err)
+		gctx.JSON(http.StatusInternalServerError, err)
 		return
 	}
 
 	if id < 0 {
-		c.JSON(http.StatusBadRequest, gin.H{
+		gctx.JSON(http.StatusBadRequest, gin.H{
 			"Status":  "Failed",
 			"Message": "неверное значение id",
 		})
@@ -136,36 +147,50 @@ func UpdateRequest(repository *repository.Repository, c *gin.Context) {
 
 	// Попробуем извлечь JSON-данные из тела запроса
 	var updatedRequest ds.Request
-	if err := c.ShouldBindJSON(&updatedRequest); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
+	if err := gctx.ShouldBindJSON(&updatedRequest); err != nil {
+		gctx.JSON(http.StatusBadRequest, gin.H{
 			"Status":  "Failed",
 			"Message": "неверные данные консультации",
 		})
 		return
 	}
 
-	err = repository.UpdateRequest(id, updatedRequest)
+	err = c.Repo.UpdateRequest(id, updatedRequest)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err)
+		gctx.JSON(http.StatusInternalServerError, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	gctx.JSON(http.StatusOK, gin.H{
 		"status": "updated",
 	})
 }
 
-func UpdateRequestStatus(repository *repository.Repository, c *gin.Context) {
+// @Summary Update Request Status By Moderator
+// @Security ApiKeyAuth
+// @Description Update request by moderator
+// @Tags Requests
+// @ID update-request-status-by-moderator
+// @Accept       json
+// @Produce      json
+// @Param        id   path      int  true  "ID заявки"
+// @Param input body ds.StatusData true "status info"
+// @Success 200 {string} string
+// @Failure 400 {object} ds.Request "Некорректный запрос"
+// @Failure 404 {object} ds.Request "Некорректный запрос"
+// @Failure 500 {object} ds.Request "Ошибка сервера"
+// @Router /requests/{id}/moderator/update-status [put]
+func (c *Controller) UpdateRequestStatus(gctx *gin.Context) {
 	// Извлекаем id консультации из параметра запроса
-	id, err := strconv.Atoi(c.Param("id"))
+	id, err := strconv.Atoi(gctx.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err)
+		gctx.JSON(http.StatusInternalServerError, err)
 		return
 	}
 
 	// Проверяем, что id неотрицательный
 	if id < 0 {
-		c.JSON(http.StatusBadRequest, gin.H{
+		gctx.JSON(http.StatusBadRequest, gin.H{
 			"Status":  "Failed",
 			"Message": "неверное значение id",
 		})
@@ -174,8 +199,8 @@ func UpdateRequestStatus(repository *repository.Repository, c *gin.Context) {
 
 	// Попробуем извлечь JSON-данные из тела запроса - новый статус
 	var status ds.StatusData
-	if err := c.ShouldBindJSON(&status); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
+	if err := gctx.ShouldBindJSON(&status); err != nil {
+		gctx.JSON(http.StatusBadRequest, gin.H{
 			"Status":  "Failed",
 			"Message": "неверные данные статуса заявки",
 		})
@@ -183,41 +208,61 @@ func UpdateRequestStatus(repository *repository.Repository, c *gin.Context) {
 	}
 	statusStr := status.Status
 	log.Println(statusStr)
-
-	err = repository.UpdateRequestStatus(id, statusStr)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, err)
+	if statusStr != "canceled" && statusStr != "finished" {
+		gctx.JSON(http.StatusBadRequest, gin.H{
+			"Status":  "Failed",
+			"Message": "неверные данные статуса заявки",
+		})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	err = c.Repo.UpdateRequestStatus(id, statusStr)
+	if err != nil {
+		gctx.JSON(http.StatusInternalServerError, err)
+		return
+	}
+
+	gctx.JSON(http.StatusOK, gin.H{
 		"status": "updated",
 	})
 }
 
-func UpdateRequestStatusToSendedByUser(repository *repository.Repository, c *gin.Context) {
+// @Summary Update Request Status By User
+// @Security ApiKeyAuth
+// @Description Update request status by user
+// @Tags Requests
+// @ID update-request-status-by-user
+// @Accept       json
+// @Produce      json
+// @Param        id   path      int  true  "ID заявки"
+// @Success 200 {string} string
+// @Failure 400 {object} ds.Request "Некорректный запрос"
+// @Failure 404 {object} ds.Request "Некорректный запрос"
+// @Failure 500 {object} ds.Request "Ошибка сервера"
+// @Router /requests/{id}/user/update-status [put]
+func (c *Controller) UpdateRequestStatusToSendedByUser(gctx *gin.Context) {
 	// Извлекаем id заявки из параметра запроса
-	id, err := strconv.Atoi(c.Param("id"))
+	id, err := strconv.Atoi(gctx.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err)
+		gctx.JSON(http.StatusInternalServerError, err)
 		return
 	}
 
 	// Проверяем, что id неотрицательный
 	if id < 0 {
-		c.JSON(http.StatusBadRequest, gin.H{
+		gctx.JSON(http.StatusBadRequest, gin.H{
 			"Status":  "Failed",
 			"Message": "неверное значение id",
 		})
 		return
 	}
-	err = repository.UpdateRequestStatus(id, "formed")
+	err = c.Repo.UpdateRequestStatus(id, "formed")
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err)
+		gctx.JSON(http.StatusInternalServerError, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	gctx.JSON(http.StatusOK, gin.H{
 		"status": "updated, new status - `formed`",
 	})
 }

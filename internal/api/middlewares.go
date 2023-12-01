@@ -1,6 +1,7 @@
 package app
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -9,6 +10,7 @@ import (
 	"github.com/Vanv1k/web-course/internal/app/ds"
 	"github.com/Vanv1k/web-course/internal/app/role"
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis/v8"
 	"github.com/golang-jwt/jwt"
 )
 
@@ -29,12 +31,27 @@ func (a *Application) WithAuthCheck(assignedRoles ...role.Role) func(ctx *gin.Co
 		// отрезаем префикс
 		jwtStr = jwtStr[len(jwtPrefix):]
 		fmt.Println(jwtStr)
+
+		err := a.redis.CheckJWTInBlacklist(gCtx.Request.Context(), jwtStr)
+		if err == nil { // значит что токен в блеклисте
+			gCtx.AbortWithStatus(http.StatusForbidden)
+
+			return
+		}
+		if !errors.Is(err, redis.Nil) { // значит что это не ошибка отсуствия - внутренняя ошибка
+			fmt.Println("Зашел сюда")
+			fmt.Println(err)
+			fmt.Println(redis.Nil)
+			gCtx.AbortWithError(http.StatusInternalServerError, err)
+
+			return
+		}
+
 		token, err := jwt.ParseWithClaims(jwtStr, &ds.JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
 			fmt.Println("Я ТУТ")
 			return []byte(a.config.JWT.Token), nil
 		})
 		if err != nil {
-			fmt.Println("ЖЕСТЬ")
 			gCtx.AbortWithStatus(http.StatusForbidden)
 			log.Println(err)
 

@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/Vanv1k/web-course/internal/app/dsn"
+	"github.com/Vanv1k/web-course/internal/app/redis"
 	"github.com/Vanv1k/web-course/internal/app/repository"
 	"github.com/golang-jwt/jwt"
 	"github.com/joho/godotenv"
@@ -13,6 +14,7 @@ import (
 type Application struct {
 	config     *Config
 	repository *repository.Repository
+	redis      *redis.Client
 }
 
 type Config struct {
@@ -37,5 +39,10 @@ func New() (*Application, error) {
 		return nil, err
 	}
 
-	return &Application{config: config, repository: repo}, nil
+	redisClient, err := redis.New()
+	if err != nil {
+		return nil, err
+	}
+
+	return &Application{config: config, repository: repo, redis: redisClient}, nil
 }

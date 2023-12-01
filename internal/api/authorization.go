@@ -5,7 +5,9 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/Vanv1k/web-course/internal/app/ds"
@@ -85,8 +87,37 @@ func generateHashString(s string) string {
 	return hex.EncodeToString(h.Sum(nil))
 }
 
-func (a *Application) Logout(repository *repository.Repository, c *gin.Context) {
-	repository.Logout()
+func (a *Application) Logout(repository *repository.Repository, gCtx *gin.Context) {
+	// получаем заголовок
+	jwtStr := gCtx.GetHeader("Authorization")
+	if !strings.HasPrefix(jwtStr, jwtPrefix) { // если нет префикса то нас дурят!
+		gCtx.AbortWithStatus(http.StatusBadRequest) // отдаем что нет доступа
+
+		return // завершаем обработку
+	}
+
+	// отрезаем префикс
+	jwtStr = jwtStr[len(jwtPrefix):]
+
+	_, err := jwt.ParseWithClaims(jwtStr, &ds.JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
+		return []byte(a.config.JWT.Token), nil
+	})
+	if err != nil {
+		gCtx.AbortWithError(http.StatusBadRequest, err)
+		log.Println(err)
+
+		return
+	}
+
+	// сохраняем в блеклист редиса
+	err = a.redis.WriteJWTToBlacklist(gCtx.Request.Context(), jwtStr, a.config.JWT.ExpiresIn)
+	if err != nil {
+		gCtx.AbortWithError(http.StatusInternalServerError, err)
+
+		return
+	}
+
+	gCtx.Status(http.StatusOK)
 }
 
 type loginReq struct {

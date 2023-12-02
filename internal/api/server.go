@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/Vanv1k/web-course/internal/app/controller"
+	"github.com/Vanv1k/web-course/internal/app/role"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -62,26 +63,26 @@ func (a *Application) StartServer() {
 	{
 		ConsultationGroup.GET("/", c.GetAllConsultations)
 		ConsultationGroup.GET("/:id", c.GetConsultationByID)
-		ConsultationGroup.GET("/request/:id", c.GetConsultationsByRequestID)
-		ConsultationGroup.DELETE("/delete/:id", c.DeleteConsultation)
-		ConsultationGroup.PUT("/update/:id", c.UpdateConsultation)
-		ConsultationGroup.POST("/create", c.CreateConsultation)
-		ConsultationGroup.POST("/:id/add-to-request", c.AddConsultationToRequest)
-		ConsultationGroup.POST("/:id/addImage", c.AddConsultationImage)
+		ConsultationGroup.Use(a.WithAuthCheck(role.Buyer)).GET("/request/:id", c.GetConsultationsByRequestID)
+		ConsultationGroup.Use(a.WithAuthCheck(role.Manager, role.Admin)).DELETE("/delete/:id", c.DeleteConsultation)
+		ConsultationGroup.Use(a.WithAuthCheck(role.Manager, role.Admin)).PUT("/update/:id", c.UpdateConsultation)
+		ConsultationGroup.Use(a.WithAuthCheck(role.Manager, role.Admin)).POST("/create", c.CreateConsultation)
+		ConsultationGroup.Use(a.WithAuthCheck(role.Buyer)).POST("/:id/add-to-request", c.AddConsultationToRequest)
+		ConsultationGroup.Use(a.WithAuthCheck(role.Manager, role.Admin)).POST("/:id/addImage", c.AddConsultationImage)
 	}
 
 	RequestGroup := r.Group("/requests")
 	{
-		RequestGroup.GET("/", c.GetAllRequests)
-		RequestGroup.DELETE("/delete/:id", c.DeleteRequest)
-		RequestGroup.PUT("/update/:id", c.UpdateRequest)
-		RequestGroup.PUT("/:id/user/update-status", c.UpdateRequestStatusToSendedByUser)
-		RequestGroup.PUT("/:id/moderator/update-status", c.UpdateRequestStatus)
+		RequestGroup.Use(a.WithAuthCheck(role.Manager, role.Admin)).GET("/", c.GetAllRequests)
+		RequestGroup.Use(a.WithAuthCheck(role.Buyer)).DELETE("/delete/:id", c.DeleteRequest)
+		RequestGroup.Use(a.WithAuthCheck(role.Manager, role.Admin)).PUT("/update/:id", c.UpdateRequest)
+		RequestGroup.Use(a.WithAuthCheck(role.Buyer)).PUT("/:id/user/update-status", c.UpdateRequestStatusToSendedByUser)
+		RequestGroup.Use(a.WithAuthCheck(role.Manager, role.Admin)).PUT("/:id/moderator/update-status", c.UpdateRequestStatus)
 	}
 
 	ConsultationRequestGroup := r.Group("/consultation-request")
 	{
-		ConsultationRequestGroup.DELETE("/delete/consultation/:id_c/request/:id_r", c.DeleteConsultationRequest)
+		ConsultationRequestGroup.Use(a.WithAuthCheck(role.Buyer)).DELETE("/delete/consultation/:id_c/request/:id_r", c.DeleteConsultationRequest)
 	}
 
 	r.Run()

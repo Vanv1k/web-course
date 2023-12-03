@@ -23,14 +23,14 @@ func (a *Application) StartServer() {
 	{
 		AuthGroup.POST("/registration", a.Register)
 		AuthGroup.POST("/login", a.Login)
-		AuthGroup.GET("/logout", a.Logout)
+		AuthGroup.Use(a.WithAuthCheck(role.Buyer, role.Manager, role.Admin)).GET("/logout", a.Logout)
 
 	}
 
 	ConsultationGroup := r.Group("/consultations")
 	{
-		ConsultationGroup.GET("/", a.controller.GetAllConsultations)
 		ConsultationGroup.GET("/:id", a.controller.GetConsultationByID)
+		ConsultationGroup.Use(a.WithAuthCheck(role.Buyer, role.Manager, role.Admin)).GET("/", a.controller.GetAllConsultations)
 		ConsultationGroup.Use(a.WithAuthCheck(role.Buyer)).GET("/request", a.controller.GetConsultationsByRequestID)
 		ConsultationGroup.Use(a.WithAuthCheck(role.Manager, role.Admin)).DELETE("/delete/:id", a.controller.DeleteConsultation)
 		ConsultationGroup.Use(a.WithAuthCheck(role.Manager, role.Admin)).PUT("/update/:id", a.controller.UpdateConsultation)

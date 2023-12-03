@@ -3,6 +3,7 @@ package app
 import (
 	"time"
 
+	"github.com/Vanv1k/web-course/internal/app/controller"
 	"github.com/Vanv1k/web-course/internal/app/dsn"
 	"github.com/Vanv1k/web-course/internal/app/redis"
 	"github.com/Vanv1k/web-course/internal/app/repository"
@@ -15,6 +16,7 @@ type Application struct {
 	config     *Config
 	repository *repository.Repository
 	redis      *redis.Client
+	controller *controller.Controller
 }
 
 type Config struct {
@@ -44,5 +46,7 @@ func New() (*Application, error) {
 		return nil, err
 	}
 
-	return &Application{config: config, repository: repo, redis: redisClient}, nil
+	c := controller.NewController(repo)
+
+	return &Application{config: config, repository: repo, redis: redisClient, controller: c}, nil
 }

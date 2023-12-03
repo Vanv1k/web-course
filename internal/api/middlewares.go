@@ -1,17 +1,16 @@
 package app
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"strings"
 
-	"github.com/Vanv1k/web-course/internal/app/ds"
 	"github.com/Vanv1k/web-course/internal/app/role"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
-	"github.com/golang-jwt/jwt"
 )
 
 const jwtPrefix = "Bearer "
@@ -47,18 +46,26 @@ func (a *Application) WithAuthCheck(assignedRoles ...role.Role) func(ctx *gin.Co
 			return
 		}
 
-		token, err := jwt.ParseWithClaims(jwtStr, &ds.JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
-			fmt.Println("Я ТУТ")
-			return []byte(a.config.JWT.Token), nil
-		})
-		if err != nil {
-			gCtx.AbortWithStatus(http.StatusForbidden)
-			log.Println(err)
+		myClaims := a.ParseClaims(gCtx)
 
-			return
+		ctxWithUserID := gCtx.Request.Context()
+		ctxWithUserID = context.WithValue(ctxWithUserID, "userID", myClaims.UserID)
+		gCtx.Set("userID", myClaims.UserID)
+
+		userID, exists := gCtx.Get("userID")
+		if exists {
+			fmt.Println(userID.(uint))
 		}
 
-		myClaims := token.Claims.(*ds.JWTClaims)
+		ctxWithUserRole := gCtx.Request.Context()
+		ctxWithUserRole = context.WithValue(ctxWithUserRole, "userRole", myClaims.Role)
+		gCtx.Set("userRole", myClaims.Role)
+
+		userRole, exists := gCtx.Get("userRole")
+		if exists {
+			fmt.Println(userRole.(role.Role))
+		}
+
 		fmt.Println("Сюда()")
 		fmt.Println(myClaims)
 		authorized := false

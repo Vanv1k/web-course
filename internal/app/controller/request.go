@@ -1,12 +1,14 @@
 package controller
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/Vanv1k/web-course/internal/app/ds"
+	"github.com/Vanv1k/web-course/internal/app/role"
 	"github.com/gin-gonic/gin"
 )
 
@@ -22,11 +24,48 @@ import (
 // @Failure 500 {object} ds.Request "Ошибка сервера"
 // @Router /requests [get]
 func (c *Controller) GetAllRequests(gctx *gin.Context) {
+
+	userID, contextError := gctx.Value("userID").(uint)
+	fmt.Println(userID)
+	fmt.Println(contextError)
+	if !contextError {
+		gctx.JSON(http.StatusBadRequest, gin.H{
+			"Status":  "Failed",
+			"Message": "ошибка при авторизации",
+		})
+		return
+	}
+	var userRole role.Role
+	userRole, contextError = gctx.Value("userRole").(role.Role)
+	fmt.Println(userRole)
+	fmt.Println(contextError)
+	if !contextError {
+		gctx.JSON(http.StatusBadRequest, gin.H{
+			"Status":  "Failed",
+			"Message": "ошибка при авторизации",
+		})
+		return
+	}
+
+	var requests []ds.Request
+	var err error
+
+	if userRole == role.Buyer {
+		requests, err = c.Repo.GetAllUserRequests(userID)
+		if err != nil {
+			gctx.JSON(http.StatusBadRequest, gin.H{
+				"Status":  "Failed",
+				"Message": "Заявки не обнаружены",
+			})
+			return
+		}
+
+		gctx.JSON(http.StatusOK, requests)
+		return
+	}
 	status := gctx.DefaultQuery("status", "")
 	startFormationDateStr := gctx.DefaultQuery("startDate", "")
 	endFormationDateStr := gctx.DefaultQuery("endDate", "")
-	var requests []ds.Request
-	var err error
 
 	if status != "" {
 		requests, err = c.Repo.GetRequestsByStatus(status)
@@ -92,6 +131,15 @@ func (c *Controller) GetAllRequests(gctx *gin.Context) {
 // @Router /requests/delete/{id} [delete]
 func (c *Controller) DeleteRequest(gctx *gin.Context) {
 
+	userID, contextError := gctx.Value("userID").(uint)
+	if !contextError {
+		gctx.JSON(http.StatusBadRequest, gin.H{
+			"Status":  "Failed",
+			"Message": "ошибка при авторизации",
+		})
+		return
+	}
+
 	id, err := strconv.Atoi(gctx.Param("id"))
 	if err != nil {
 		gctx.JSON(http.StatusInternalServerError, err)
@@ -106,7 +154,7 @@ func (c *Controller) DeleteRequest(gctx *gin.Context) {
 		return
 	}
 
-	err = c.Repo.DeleteRequest(id)
+	err = c.Repo.DeleteRequest(id, userID)
 
 	if err != nil {
 		gctx.JSON(http.StatusBadRequest, err)
@@ -130,7 +178,16 @@ func (c *Controller) DeleteRequest(gctx *gin.Context) {
 // @Failure 500 {object} ds.Request "Ошибка сервера"
 // @Router /requests/update/{id} [put]
 func (c *Controller) UpdateRequest(gctx *gin.Context) {
-	// Извлекаем id request из параметра запроса
+
+	userID, contextError := gctx.Value("userID").(uint)
+	if !contextError {
+		gctx.JSON(http.StatusBadRequest, gin.H{
+			"Status":  "Failed",
+			"Message": "ошибка при авторизации",
+		})
+		return
+	}
+
 	id, err := strconv.Atoi(gctx.Param("id"))
 	if err != nil {
 		gctx.JSON(http.StatusInternalServerError, err)
@@ -155,7 +212,7 @@ func (c *Controller) UpdateRequest(gctx *gin.Context) {
 		return
 	}
 
-	err = c.Repo.UpdateRequest(id, updatedRequest)
+	err = c.Repo.UpdateRequest(id, userID, updatedRequest)
 	if err != nil {
 		gctx.JSON(http.StatusInternalServerError, err)
 		return
@@ -208,7 +265,7 @@ func (c *Controller) UpdateRequestStatus(gctx *gin.Context) {
 	}
 	statusStr := status.Status
 	log.Println(statusStr)
-	if statusStr != "canceled" && statusStr != "finished" {
+	if statusStr != "canceled" && statusStr != "ended" {
 		gctx.JSON(http.StatusBadRequest, gin.H{
 			"Status":  "Failed",
 			"Message": "неверные данные статуса заявки",
@@ -241,7 +298,16 @@ func (c *Controller) UpdateRequestStatus(gctx *gin.Context) {
 // @Failure 500 {object} ds.Request "Ошибка сервера"
 // @Router /requests/{id}/user/update-status [put]
 func (c *Controller) UpdateRequestStatusToSendedByUser(gctx *gin.Context) {
-	// Извлекаем id заявки из параметра запроса
+
+	userID, contextError := gctx.Value("userID").(uint)
+	if !contextError {
+		gctx.JSON(http.StatusBadRequest, gin.H{
+			"Status":  "Failed",
+			"Message": "ошибка при авторизации",
+		})
+		return
+	}
+
 	id, err := strconv.Atoi(gctx.Param("id"))
 	if err != nil {
 		gctx.JSON(http.StatusInternalServerError, err)
@@ -256,7 +322,7 @@ func (c *Controller) UpdateRequestStatusToSendedByUser(gctx *gin.Context) {
 		})
 		return
 	}
-	err = c.Repo.UpdateRequestStatus(id, "formed")
+	err = c.Repo.UpdateRequestStatusToSended(id, userID)
 	if err != nil {
 		gctx.JSON(http.StatusInternalServerError, err)
 		return

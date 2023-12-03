@@ -20,15 +20,20 @@ func (r *Repository) GetConsultationByID(id uint) (*ds.Consultation, error) {
 	return consultation, nil
 }
 
-func (r *Repository) GetConsultationsByRequestID(id int) (ds.ConsultationInfo, error) {
+func (r *Repository) GetConsultationsByRequestID(userID uint) (ds.ConsultationInfo, error) {
 	var consultationRequests []ds.ConsultationRequest
 	var consultationInfo ds.ConsultationInfo
+	var request ds.Request
 
-	err := r.db.Find(&consultationRequests, "Requestid = ?", id).Error
+	err := r.db.Find(&request, "status = ? AND user_id = ?", "active", userID).Error
 	if err != nil {
 		return consultationInfo, err
 	}
-	log.Println(consultationRequests)
+
+	err = r.db.Find(&consultationRequests, "Requestid = ?", request.Id).Error
+	if err != nil {
+		return consultationInfo, err
+	}
 
 	for _, consultationRequest := range consultationRequests {
 		consultation, err := r.GetConsultationByID(uint(consultationRequest.Consultationid))
@@ -56,14 +61,16 @@ func (r *Repository) CreateConsultation(consultation ds.Consultation) error {
 	return r.db.Create(&consultation).Error
 }
 
-func (r *Repository) GetAllConsultations() ([]ds.Consultation, uint, error) {
+func (r *Repository) GetAllConsultations(userID uint) ([]ds.Consultation, uint, error) {
 	var consultations []ds.Consultation
 	var request ds.Request
-	var userID = 3
 	err := r.db.Find(&consultations, "status = 'active'").Error
 	if err != nil {
 		return nil, 0, err
 	}
+	// if userID == 0 {
+	// 	return consultations, 0, nil
+	// }
 	err = r.db.Where("status = ? AND user_id = ?", "active", userID).First(&request).Error
 	if err != nil {
 		return consultations, 0, nil
@@ -72,10 +79,9 @@ func (r *Repository) GetAllConsultations() ([]ds.Consultation, uint, error) {
 	return consultations, request.Id, nil
 }
 
-func (r *Repository) GetConsultationsByPrice(maxPrice int) ([]ds.Consultation, uint, error) {
+func (r *Repository) GetConsultationsByPrice(maxPrice int, userID uint) ([]ds.Consultation, uint, error) {
 	var consultations []ds.Consultation
 	var request ds.Request
-	var userID = 3
 	err := r.db.Where("status = ? AND price <= ?", "active", maxPrice).Find(&consultations).Error
 	if err != nil {
 		return nil, 0, err
@@ -109,7 +115,7 @@ func (r *Repository) UpdateConsultation(id int, consultation ds.Consultation) er
 	return nil
 }
 
-func (r *Repository) AddConsultationToRequest(consultationID int, userID int) error {
+func (r *Repository) AddConsultationToRequest(consultationID int, userID uint) error {
 	var consultationRequest ds.ConsultationRequest
 	var request ds.Request
 	err := r.db.Where("status = ? AND user_id = ?", "active", userID).First(&request).Error

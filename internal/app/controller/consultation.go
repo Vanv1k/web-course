@@ -48,7 +48,7 @@ func (c *Controller) GetConsultationByID(gctx *gin.Context) {
 	gctx.JSON(http.StatusOK, consultation)
 }
 
-type Info struct {
+type ResponseInfo struct {
 	Name  string
 	Price int
 }
@@ -60,37 +60,34 @@ type Info struct {
 // @ID get-consultation-by-id-of-request
 // @Accept       json
 // @Produce      json
-// @Param        id   path      int  true  "ID заявки"
-// @Success 200 {object} Info
+// @Success 200 {object} ResponseInfo
 // @Failure 400 {object} ds.Consultation "Некорректный запрос"
 // @Failure 404 {object} ds.Consultation "Некорректный запрос"
 // @Failure 500 {object} ds.Consultation "Ошибка сервера"
-// @Router /consultations/request/{id} [get]
+// @Router /consultations/request [get]
 func (c *Controller) GetConsultationsByRequestID(gctx *gin.Context) {
-	var consultationInfo ds.ConsultationInfo
 
-	id, err := strconv.Atoi(gctx.Param("id"))
-	if err != nil {
-		gctx.JSON(http.StatusInternalServerError, err)
-		return
-	}
-	if id < 0 {
+	userID, contextError := gctx.Value("userID").(uint)
+	if !contextError {
 		gctx.JSON(http.StatusBadRequest, gin.H{
 			"Status":  "Failed",
-			"Message": "неверное значение id",
+			"Message": "ошибка при авторизации",
 		})
 		return
 	}
 
-	consultationInfo, err = c.Repo.GetConsultationsByRequestID(id)
+	var consultationInfo ds.ConsultationInfo
+	var err error
+
+	consultationInfo, err = c.Repo.GetConsultationsByRequestID(userID)
 	if err != nil {
 		gctx.JSON(http.StatusInternalServerError, err)
 		return
 	}
 
-	var result []Info
+	var result []ResponseInfo
 	for i, _ := range consultationInfo.Names {
-		consultation := Info{
+		consultation := ResponseInfo{
 			Name:  consultationInfo.Names[i],
 			Price: consultationInfo.Prices[i],
 		}
@@ -98,6 +95,11 @@ func (c *Controller) GetConsultationsByRequestID(gctx *gin.Context) {
 	}
 	gctx.JSON(http.StatusOK, result)
 }
+
+// type ConsultationsResonse struct {
+// 	Consultations []ds.Consultation
+// 	Requestid     int
+// }
 
 // @Summary Get Consultations
 // @Description Get all consultations
@@ -116,6 +118,8 @@ func (c *Controller) GetAllConsultations(gctx *gin.Context) {
 	var userRequestId uint
 	var maxPrice int
 
+	userID, _ := gctx.Value("userID").(uint)
+
 	if maxPriceStr != "" {
 		maxPrice, err = strconv.Atoi(maxPriceStr)
 		if err != nil {
@@ -123,7 +127,7 @@ func (c *Controller) GetAllConsultations(gctx *gin.Context) {
 			return
 		}
 
-		consultations, userRequestId, err = c.Repo.GetConsultationsByPrice(maxPrice)
+		consultations, userRequestId, err = c.Repo.GetConsultationsByPrice(maxPrice, userID)
 		if err != nil {
 			gctx.JSON(http.StatusInternalServerError, err)
 			return
@@ -136,7 +140,7 @@ func (c *Controller) GetAllConsultations(gctx *gin.Context) {
 		return
 	}
 
-	consultations, userRequestId, err = c.Repo.GetAllConsultations()
+	consultations, userRequestId, err = c.Repo.GetAllConsultations(userID)
 	if err != nil {
 		gctx.JSON(http.StatusInternalServerError, err)
 		return
@@ -290,6 +294,15 @@ func (c *Controller) UpdateConsultation(gctx *gin.Context) {
 // @Router /consultations/{id}/add-to-request [post]
 func (c *Controller) AddConsultationToRequest(gctx *gin.Context) {
 
+	userID, contextError := gctx.Value("userID").(uint)
+	if !contextError {
+		gctx.JSON(http.StatusBadRequest, gin.H{
+			"Status":  "Failed",
+			"Message": "ошибка при авторизации",
+		})
+		return
+	}
+
 	id, err := strconv.Atoi(gctx.Param("id"))
 	if err != nil {
 		gctx.JSON(http.StatusInternalServerError, err)
@@ -304,7 +317,7 @@ func (c *Controller) AddConsultationToRequest(gctx *gin.Context) {
 		return
 	}
 
-	err = c.Repo.AddConsultationToRequest(id, 1)
+	err = c.Repo.AddConsultationToRequest(id, userID)
 	if err != nil {
 		gctx.JSON(http.StatusInternalServerError, gin.H{
 			"Status":  "Failed",

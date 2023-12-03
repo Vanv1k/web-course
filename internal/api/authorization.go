@@ -172,7 +172,10 @@ func (a *Application) Login(gCtx *gin.Context) {
 		gCtx.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
-	fmt.Println(generateHashString(req.Password))
+	// fmt.Println(generateHashString(req.Password))
+	// fmt.Println(generateHashString(user.Password))
+	// fmt.Println(req.Login)
+	// fmt.Println(user.Login)
 	if req.Login == user.Login && user.Password == generateHashString(req.Password) {
 		// значит проверка пройдена
 		// генерируем ему jwt

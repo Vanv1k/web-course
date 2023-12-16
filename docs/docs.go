@@ -274,6 +274,11 @@ const docTemplate = `{
         },
         "/consultations/delete/{id}": {
             "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Delete consultation by ID",
                 "consumes": [
                     "application/json"
@@ -323,7 +328,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/consultations/request/{id}": {
+        "/consultations/request": {
             "get": {
                 "security": [
                     {
@@ -331,9 +336,6 @@ const docTemplate = `{
                     }
                 ],
                 "description": "Show consultation by ID of request",
-                "consumes": [
-                    "application/json"
-                ],
                 "produces": [
                     "application/json"
                 ],
@@ -342,20 +344,11 @@ const docTemplate = `{
                 ],
                 "summary": "Get Consultation by request ID",
                 "operationId": "get-consultation-by-id-of-request",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "ID заявки",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/controller.Info"
+                            "$ref": "#/definitions/controller.ResponseInfo"
                         }
                     },
                     "400": {
@@ -935,7 +928,7 @@ const docTemplate = `{
                 }
             }
         },
-        "controller.Info": {
+        "controller.ResponseInfo": {
             "type": "object",
             "properties": {
                 "name": {

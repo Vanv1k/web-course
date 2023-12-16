@@ -21,7 +21,7 @@ definitions:
       ok:
         type: boolean
     type: object
-  controller.Info:
+  controller.ResponseInfo:
     properties:
       name:
         type: string
@@ -417,28 +417,22 @@ paths:
           description: Ошибка сервера
           schema:
             $ref: '#/definitions/ds.Consultation'
+      security:
+      - ApiKeyAuth: []
       summary: Delete consultation by ID
       tags:
       - Consultations
-  /consultations/request/{id}:
+  /consultations/request:
     get:
-      consumes:
-      - application/json
       description: Show consultation by ID of request
       operationId: get-consultation-by-id-of-request
-      parameters:
-      - description: ID заявки
-        in: path
-        name: id
-        required: true
-        type: integer
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/controller.Info'
+            $ref: '#/definitions/controller.ResponseInfo'
         "400":
           description: Некорректный запрос
           schema:

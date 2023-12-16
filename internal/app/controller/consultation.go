@@ -58,7 +58,6 @@ type ResponseInfo struct {
 // @Description Show consultation by ID of request
 // @Tags Consultations
 // @ID get-consultation-by-id-of-request
-// @Accept       json
 // @Produce      json
 // @Success 200 {object} ResponseInfo
 // @Failure 400 {object} ds.Consultation "Некорректный запрос"

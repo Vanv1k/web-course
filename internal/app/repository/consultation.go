@@ -68,9 +68,9 @@ func (r *Repository) GetAllConsultations(userID uint) ([]ds.Consultation, uint, 
 	if err != nil {
 		return nil, 0, err
 	}
-	// if userID == 0 {
-	// 	return consultations, 0, nil
-	// }
+	if userID == 0 {
+		return consultations, 0, nil
+	}
 	err = r.db.Where("status = ? AND user_id = ?", "active", userID).First(&request).Error
 	if err != nil {
 		return consultations, 0, nil
@@ -85,6 +85,9 @@ func (r *Repository) GetConsultationsByPrice(maxPrice int, userID uint) ([]ds.Co
 	err := r.db.Where("status = ? AND price <= ?", "active", maxPrice).Find(&consultations).Error
 	if err != nil {
 		return nil, 0, err
+	}
+	if userID == 0 {
+		return consultations, 0, nil
 	}
 	err = r.db.Where("status = ? AND user_id = ?", "active", userID).First(&request).Error
 	if err != nil {

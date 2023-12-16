@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/Vanv1k/web-course/internal/app/ds"
@@ -87,16 +88,20 @@ func (r *Repository) UpdateRequest(id int, userID uint, request ds.Request) erro
 	return nil
 }
 
-func (r *Repository) UpdateRequestStatus(id int, status string) error {
+func (r *Repository) UpdateRequestStatus(userID uint, id int, status string) error {
 	// Проверяем, существует ли заявка с указанным ID.
 	existingRequest, err := r.GetRequestByID(id)
 	if err != nil {
 		return err // Возвращаем ошибку, если заявка не найдена.
 	}
 
+	if existingRequest.Status != "formed" {
+		return fmt.Errorf("Неправильный статус: %s, ожадался 'formed'", existingRequest.Status)
+	}
+
 	// Обновляем поля существующей консультации.
 	existingRequest.Status = status
-
+	existingRequest.ModeratorID = userID
 	// Сохраняем обновленную консультацию в базу данных.
 	if err := r.db.Model(ds.Request{}).Where("id = ?", id).Updates(existingRequest).Error; err != nil {
 		return err
@@ -109,6 +114,10 @@ func (r *Repository) UpdateRequestStatusToSended(id int, userID uint) error {
 	existingRequest, err := r.GetRequestByID(id)
 	if err != nil {
 		return err // Возвращаем ошибку, если заявка не найдена.
+	}
+
+	if existingRequest.Status != "active" {
+		return fmt.Errorf("Неправильный статус: %s, ожадался 'active'", existingRequest.Status)
 	}
 
 	// Обновляем поля существующей консультации.

@@ -12,6 +12,19 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type GetAllRequestsResponse struct {
+	Id                 uint
+	Status             string
+	StartDate          time.Time
+	FormationDate      time.Time
+	EndDate            time.Time
+	UserName           string
+	ModeratorName      string
+	Consultation_place string
+	Consultation_time  time.Time
+	Company_name       string
+}
+
 // @Summary Get Requests
 // @Security ApiKeyAuth
 // @Description Get all requests
@@ -60,7 +73,28 @@ func (c *Controller) GetAllRequests(gctx *gin.Context) {
 			return
 		}
 
-		gctx.JSON(http.StatusOK, requests)
+		var result []GetAllRequestsResponse
+		var userName string
+		userName, err = c.Repo.GetUserName(userID)
+		for i, _ := range requests {
+			var moderatorName string
+			moderatorName, err = c.Repo.GetUserName(requests[i].ModeratorID)
+			request := GetAllRequestsResponse{
+				Id:                 requests[i].Id,
+				Status:             requests[i].Status,
+				StartDate:          requests[i].StartDate,
+				FormationDate:      requests[i].FormationDate,
+				EndDate:            requests[i].EndDate,
+				UserName:           userName,
+				ModeratorName:      moderatorName,
+				Consultation_place: requests[i].Consultation_place,
+				Consultation_time:  requests[i].Consultation_time,
+				Company_name:       requests[i].Company_name,
+			}
+			result = append(result, request)
+		}
+
+		gctx.JSON(http.StatusOK, result)
 		return
 	}
 	status := gctx.DefaultQuery("status", "")
@@ -74,7 +108,28 @@ func (c *Controller) GetAllRequests(gctx *gin.Context) {
 			return
 		}
 
-		gctx.JSON(http.StatusOK, requests)
+		var result []GetAllRequestsResponse
+		for i, _ := range requests {
+			var userName string
+			var moderatorName string
+			userName, err = c.Repo.GetUserName(userID)
+			moderatorName, err = c.Repo.GetUserName(requests[i].ModeratorID)
+			request := GetAllRequestsResponse{
+				Id:                 requests[i].Id,
+				Status:             requests[i].Status,
+				StartDate:          requests[i].StartDate,
+				FormationDate:      requests[i].FormationDate,
+				EndDate:            requests[i].EndDate,
+				UserName:           userName,
+				ModeratorName:      moderatorName,
+				Consultation_place: requests[i].Consultation_place,
+				Consultation_time:  requests[i].Consultation_time,
+				Company_name:       requests[i].Company_name,
+			}
+			result = append(result, request)
+		}
+
+		gctx.JSON(http.StatusOK, result)
 		return
 	}
 	log.Println(startFormationDateStr + "ASSDA")
@@ -102,8 +157,27 @@ func (c *Controller) GetAllRequests(gctx *gin.Context) {
 			gctx.JSON(http.StatusInternalServerError, err)
 			return
 		}
-
-		gctx.JSON(http.StatusOK, requests)
+		var result []GetAllRequestsResponse
+		for i, _ := range requests {
+			var userName string
+			var moderatorName string
+			userName, err = c.Repo.GetUserName(userID)
+			moderatorName, err = c.Repo.GetUserName(requests[i].ModeratorID)
+			request := GetAllRequestsResponse{
+				Id:                 requests[i].Id,
+				Status:             requests[i].Status,
+				StartDate:          requests[i].StartDate,
+				FormationDate:      requests[i].FormationDate,
+				EndDate:            requests[i].EndDate,
+				UserName:           userName,
+				ModeratorName:      moderatorName,
+				Consultation_place: requests[i].Consultation_place,
+				Consultation_time:  requests[i].Consultation_time,
+				Company_name:       requests[i].Company_name,
+			}
+			result = append(result, request)
+		}
+		gctx.JSON(http.StatusOK, result)
 		return
 	}
 	log.Println("go here")
@@ -113,7 +187,27 @@ func (c *Controller) GetAllRequests(gctx *gin.Context) {
 		return
 	}
 
-	gctx.JSON(http.StatusOK, requests)
+	var result []GetAllRequestsResponse
+	for i, _ := range requests {
+		var userName string
+		var moderatorName string
+		userName, err = c.Repo.GetUserName(userID)
+		moderatorName, err = c.Repo.GetUserName(requests[i].ModeratorID)
+		request := GetAllRequestsResponse{
+			Id:                 requests[i].Id,
+			Status:             requests[i].Status,
+			StartDate:          requests[i].StartDate,
+			FormationDate:      requests[i].FormationDate,
+			EndDate:            requests[i].EndDate,
+			UserName:           userName,
+			ModeratorName:      moderatorName,
+			Consultation_place: requests[i].Consultation_place,
+			Consultation_time:  requests[i].Consultation_time,
+			Company_name:       requests[i].Company_name,
+		}
+		result = append(result, request)
+	}
+	gctx.JSON(http.StatusOK, result)
 }
 
 // @Summary Delete Request by ID
@@ -238,14 +332,22 @@ func (c *Controller) UpdateRequest(gctx *gin.Context) {
 // @Failure 500 {object} ds.Request "Ошибка сервера"
 // @Router /requests/{id}/moderator/update-status [put]
 func (c *Controller) UpdateRequestStatus(gctx *gin.Context) {
-	// Извлекаем id консультации из параметра запроса
+
+	userID, contextError := gctx.Value("userID").(uint)
+	if !contextError {
+		gctx.JSON(http.StatusBadRequest, gin.H{
+			"Status":  "Failed",
+			"Message": "ошибка при авторизации",
+		})
+		return
+	}
+
 	id, err := strconv.Atoi(gctx.Param("id"))
 	if err != nil {
 		gctx.JSON(http.StatusInternalServerError, err)
 		return
 	}
 
-	// Проверяем, что id неотрицательный
 	if id < 0 {
 		gctx.JSON(http.StatusBadRequest, gin.H{
 			"Status":  "Failed",
@@ -273,9 +375,13 @@ func (c *Controller) UpdateRequestStatus(gctx *gin.Context) {
 		return
 	}
 
-	err = c.Repo.UpdateRequestStatus(id, statusStr)
+	err = c.Repo.UpdateRequestStatus(userID, id, statusStr)
+	fmt.Println(err)
 	if err != nil {
-		gctx.JSON(http.StatusInternalServerError, err)
+		gctx.JSON(http.StatusBadRequest, gin.H{
+			"Status":  "Failed",
+			"Message": err.Error(),
+		})
 		return
 	}
 

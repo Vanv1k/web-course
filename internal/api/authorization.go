@@ -132,7 +132,15 @@ func (a *Application) Logout(gCtx *gin.Context) {
 
 		return
 	}
-
+	cookie := &http.Cookie{
+		Name:     "access_token",
+		Value:    "",
+		Expires:  time.Now().Add(-time.Hour), // отрицательное значение
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteNoneMode,
+	}
+	http.SetCookie(gCtx.Writer, cookie)
 	gCtx.Status(http.StatusOK)
 }
 
@@ -200,6 +208,18 @@ func (a *Application) Login(gCtx *gin.Context) {
 			gCtx.AbortWithError(http.StatusInternalServerError, fmt.Errorf("cant create str token"))
 			return
 		}
+
+		cookie := &http.Cookie{
+			Name:     "access_token",
+			Value:    strToken,
+			Expires:  time.Now().Add(cfg.JWT.ExpiresIn),
+			HttpOnly: true,
+			Secure:   true,
+			SameSite: http.SameSiteNoneMode,
+		}
+		gCtx.Header("Authorization", "Bearer "+strToken)
+
+		http.SetCookie(gCtx.Writer, cookie)
 
 		gCtx.JSON(http.StatusOK, loginResp{
 			ExpiresIn:   int(cfg.JWT.ExpiresIn.Seconds()),

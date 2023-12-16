@@ -18,8 +18,13 @@ const jwtPrefix = "Bearer "
 func (a *Application) WithAuthCheck(assignedRoles ...role.Role) func(ctx *gin.Context) {
 	return func(gCtx *gin.Context) {
 		jwtStr := gCtx.GetHeader("Authorization")
-		if gCtx.Request.URL.Path == "/consultations" && jwtStr == "" {
+		fmt.Println(gCtx.Request.URL.Path)
+		fmt.Println(12)
+		fmt.Println(strings.HasPrefix(gCtx.Request.URL.Path, "/consultations/?maxPrice"))
+		fmt.Println(gCtx.Request.URL.Path == "/consultations/")
 
+		if jwtStr == "" && (gCtx.Request.URL.Path == "/consultations/" || strings.HasPrefix(gCtx.Request.URL.Path, "/consultations/?maxPrice")) {
+			fmt.Println("zdes")
 		} else {
 			fmt.Println("rfr")
 			fmt.Println(jwtStr)

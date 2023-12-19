@@ -49,6 +49,7 @@ func (c *Controller) GetConsultationByID(gctx *gin.Context) {
 }
 
 type ResponseInfo struct {
+	Id    uint
 	Name  string
 	Price int
 }
@@ -87,6 +88,7 @@ func (c *Controller) GetConsultationsByRequestID(gctx *gin.Context) {
 	var result []ResponseInfo
 	for i, _ := range consultationInfo.Names {
 		consultation := ResponseInfo{
+			Id:    consultationInfo.Id[i],
 			Name:  consultationInfo.Names[i],
 			Price: consultationInfo.Prices[i],
 		}

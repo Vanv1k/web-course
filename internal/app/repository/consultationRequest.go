@@ -12,3 +12,19 @@ func (r *Repository) DeleteConsultationRequest(idC int, idR int) error {
 	}
 	return r.db.Delete(&consultationRequest).Error
 }
+
+func (r *Repository) ClearShoppingCart(requestID uint) error {
+	var consultationRequests []ds.ConsultationRequest
+
+	err := r.db.Find(&consultationRequests, "Requestid = ?", requestID).Error
+	if err != nil {
+		return err
+	}
+
+	err = r.db.Delete(&consultationRequests).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

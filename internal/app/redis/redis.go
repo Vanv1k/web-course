@@ -32,8 +32,8 @@ func New() (*Client, error) {
 	client.cfg.Password = "password"
 	client.cfg.Port = 6379
 	client.cfg.User = ""
-	client.cfg.DialTimeout = 10
-	client.cfg.ReadTimeout = 10
+	client.cfg.DialTimeout = 10000000
+	client.cfg.ReadTimeout = 10000000
 
 	redisClient := redis.NewClient(&redis.Options{
 		Password:    client.cfg.Password,

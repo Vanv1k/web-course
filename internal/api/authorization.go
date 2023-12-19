@@ -25,7 +25,8 @@ type registerReq struct {
 }
 
 type registerResp struct {
-	Ok bool `json:"ok"`
+	Ok          bool   `json:"ok"`
+	AccessToken string `json:"access_token"`
 }
 
 // @Summary Registration
@@ -37,37 +38,37 @@ type registerResp struct {
 // @Param input body ds.User true "user info"
 // @Success 200 {object} registerResp
 // @Router /auth/registration [post]
-func (a *Application) Register(c *gin.Context) {
+func (a *Application) Register(gCtx *gin.Context) {
 	req := &registerReq{}
-
-	err := json.NewDecoder(c.Request.Body).Decode(req)
+	cfg := a.config
+	err := json.NewDecoder(gCtx.Request.Body).Decode(req)
 	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+		gCtx.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 
 	if req.Password == "" {
-		c.AbortWithError(http.StatusBadRequest, fmt.Errorf("password is empty"))
+		gCtx.AbortWithError(http.StatusBadRequest, fmt.Errorf("password is empty"))
 		return
 	}
 
 	if req.Login == "" {
-		c.AbortWithError(http.StatusBadRequest, fmt.Errorf("login is empty"))
+		gCtx.AbortWithError(http.StatusBadRequest, fmt.Errorf("login is empty"))
 		return
 	}
 
 	if req.Name == "" {
-		c.AbortWithError(http.StatusBadRequest, fmt.Errorf("name is empty"))
+		gCtx.AbortWithError(http.StatusBadRequest, fmt.Errorf("name is empty"))
 		return
 	}
 
 	if req.Email == "" {
-		c.AbortWithError(http.StatusBadRequest, fmt.Errorf("email is empty"))
+		gCtx.AbortWithError(http.StatusBadRequest, fmt.Errorf("email is empty"))
 		return
 	}
 
 	if req.PhoneNumber == "" {
-		c.AbortWithError(http.StatusBadRequest, fmt.Errorf("phone number is empty"))
+		gCtx.AbortWithError(http.StatusBadRequest, fmt.Errorf("phone number is empty"))
 		return
 	}
 
@@ -80,12 +81,52 @@ func (a *Application) Register(c *gin.Context) {
 		Password:    generateHashString(req.Password), // пароли делаем в хешированном виде и далее будем сравнивать хеши, чтобы их не угнали с базой вместе
 	})
 	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, err)
+		gCtx.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	user, err := a.repository.GetUserByLogin(req.Login)
+	fmt.Println(user)
+	if err != nil {
+		gCtx.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	cfg.JWT.SigningMethod = jwt.SigningMethodHS256
+	cfg.JWT.ExpiresIn = time.Hour
+	token := jwt.NewWithClaims(cfg.JWT.SigningMethod, &ds.JWTClaims{
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(cfg.JWT.ExpiresIn).Unix(),
+			IssuedAt:  time.Now().Unix(),
+			Issuer:    "bitop-admin",
+		},
+		UserID: user.Id, // test uuid
+		Role:   user.Role,
+	})
+	if token == nil {
+		gCtx.AbortWithError(http.StatusInternalServerError, fmt.Errorf("token is nil"))
 		return
 	}
 
-	c.JSON(http.StatusOK, &registerResp{
-		Ok: true,
+	strToken, err := token.SignedString([]byte(cfg.JWT.Token))
+	if err != nil {
+		gCtx.AbortWithError(http.StatusInternalServerError, fmt.Errorf("cant create str token"))
+		return
+	}
+
+	cookie := &http.Cookie{
+		Name:     "access_token",
+		Value:    strToken,
+		Expires:  time.Now().Add(cfg.JWT.ExpiresIn),
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteNoneMode,
+	}
+	gCtx.Header("Authorization", "Bearer "+strToken)
+
+	http.SetCookie(gCtx.Writer, cookie)
+
+	gCtx.JSON(http.StatusOK, &registerResp{
+		Ok:          true,
+		AccessToken: strToken,
 	})
 }
 
@@ -139,6 +180,22 @@ func (a *Application) Logout(gCtx *gin.Context) {
 		HttpOnly: true,
 		Secure:   true,
 		SameSite: http.SameSiteNoneMode,
+	}
+	userID, contextError := gCtx.Value("userID").(uint)
+	if !contextError {
+		gCtx.JSON(http.StatusBadRequest, gin.H{
+			"Status":  "Failed",
+			"Message": "ошибка авторизации",
+		})
+		return
+	}
+	err = a.repository.DeleteActiveRequest(userID)
+	if err != nil {
+		gCtx.JSON(http.StatusBadRequest, gin.H{
+			"Status":  "Failed",
+			"Message": "ошибка при выходе",
+		})
+		return
 	}
 	http.SetCookie(gCtx.Writer, cookie)
 	gCtx.Status(http.StatusOK)

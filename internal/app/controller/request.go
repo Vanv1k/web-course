@@ -78,7 +78,11 @@ func (c *Controller) GetAllRequests(gctx *gin.Context) {
 		userName, err = c.Repo.GetUserName(userID)
 		for i, _ := range requests {
 			var moderatorName string
-			moderatorName, err = c.Repo.GetUserName(requests[i].ModeratorID)
+			if requests[i].ModeratorID == nil {
+				moderatorName, err = c.Repo.GetUserName(0)
+			} else {
+				moderatorName, err = c.Repo.GetUserName(*requests[i].ModeratorID)
+			}
 			request := GetAllRequestsResponse{
 				Id:                 requests[i].Id,
 				Status:             requests[i].Status,
@@ -112,8 +116,12 @@ func (c *Controller) GetAllRequests(gctx *gin.Context) {
 		for i, _ := range requests {
 			var userName string
 			var moderatorName string
-			userName, err = c.Repo.GetUserName(userID)
-			moderatorName, err = c.Repo.GetUserName(requests[i].ModeratorID)
+			userName, err = c.Repo.GetUserName(requests[i].UserID)
+			if requests[i].ModeratorID == nil {
+				moderatorName, err = c.Repo.GetUserName(0)
+			} else {
+				moderatorName, err = c.Repo.GetUserName(*requests[i].ModeratorID)
+			}
 			request := GetAllRequestsResponse{
 				Id:                 requests[i].Id,
 				Status:             requests[i].Status,
@@ -161,8 +169,12 @@ func (c *Controller) GetAllRequests(gctx *gin.Context) {
 		for i, _ := range requests {
 			var userName string
 			var moderatorName string
-			userName, err = c.Repo.GetUserName(userID)
-			moderatorName, err = c.Repo.GetUserName(requests[i].ModeratorID)
+			userName, err = c.Repo.GetUserName(requests[i].UserID)
+			if requests[i].ModeratorID == nil {
+				moderatorName, err = c.Repo.GetUserName(0)
+			} else {
+				moderatorName, err = c.Repo.GetUserName(*requests[i].ModeratorID)
+			}
 			request := GetAllRequestsResponse{
 				Id:                 requests[i].Id,
 				Status:             requests[i].Status,
@@ -191,8 +203,13 @@ func (c *Controller) GetAllRequests(gctx *gin.Context) {
 	for i, _ := range requests {
 		var userName string
 		var moderatorName string
-		userName, err = c.Repo.GetUserName(userID)
-		moderatorName, err = c.Repo.GetUserName(requests[i].ModeratorID)
+		userName, err = c.Repo.GetUserName(requests[i].UserID)
+		if requests[i].ModeratorID == nil {
+			moderatorName, err = c.Repo.GetUserName(0)
+		} else {
+			moderatorName, err = c.Repo.GetUserName(*requests[i].ModeratorID)
+		}
+
 		request := GetAllRequestsResponse{
 			Id:                 requests[i].Id,
 			Status:             requests[i].Status,

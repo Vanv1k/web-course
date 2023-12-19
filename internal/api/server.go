@@ -23,29 +23,29 @@ func (a *Application) StartServer() {
 	{
 		AuthGroup.POST("/registration", a.Register)
 		AuthGroup.POST("/login", a.Login)
-		AuthGroup.Use(a.WithAuthCheck(role.Buyer, role.Manager, role.Admin)).GET("/logout", a.Logout)
+		AuthGroup.GET("/logout", a.WithAuthCheck(role.Buyer, role.Manager, role.Admin), a.Logout)
 
 	}
 
 	ConsultationGroup := r.Group("/consultations")
 	{
 		ConsultationGroup.GET("/:id", a.controller.GetConsultationByID)
-		ConsultationGroup.Use(a.WithAuthCheck(role.Buyer, role.Manager, role.Admin)).GET("/", a.controller.GetAllConsultations)
-		ConsultationGroup.Use(a.WithAuthCheck(role.Buyer)).GET("/request", a.controller.GetConsultationsByRequestID)
-		ConsultationGroup.Use(a.WithAuthCheck(role.Manager, role.Admin)).DELETE("/delete/:id", a.controller.DeleteConsultation)
-		ConsultationGroup.Use(a.WithAuthCheck(role.Manager, role.Admin)).PUT("/update/:id", a.controller.UpdateConsultation)
-		ConsultationGroup.Use(a.WithAuthCheck(role.Manager, role.Admin)).POST("/create", a.controller.CreateConsultation)
-		ConsultationGroup.Use(a.WithAuthCheck(role.Buyer)).POST("/:id/add-to-request", a.controller.AddConsultationToRequest)
-		ConsultationGroup.Use(a.WithAuthCheck(role.Manager, role.Admin)).POST("/:id/addImage", a.controller.AddConsultationImage)
+		ConsultationGroup.GET("/", a.WithAuthCheck(role.Buyer, role.Manager, role.Admin), a.controller.GetAllConsultations)
+		ConsultationGroup.GET("/request", a.WithAuthCheck(role.Buyer), a.controller.GetConsultationsByRequestID)
+		ConsultationGroup.DELETE("/delete/:id", a.WithAuthCheck(role.Manager, role.Admin), a.controller.DeleteConsultation)
+		ConsultationGroup.PUT("/update/:id", a.WithAuthCheck(role.Manager, role.Admin), a.controller.UpdateConsultation)
+		ConsultationGroup.POST("/create", a.WithAuthCheck(role.Manager, role.Admin), a.controller.CreateConsultation)
+		ConsultationGroup.POST("/:id/add-to-request", a.WithAuthCheck(role.Buyer), a.controller.AddConsultationToRequest)
+		ConsultationGroup.POST("/:id/addImage", a.WithAuthCheck(role.Manager, role.Admin), a.controller.AddConsultationImage)
 	}
 
 	RequestGroup := r.Group("/requests")
 	{
-		RequestGroup.Use(a.WithAuthCheck(role.Buyer, role.Manager, role.Admin)).GET("/", a.controller.GetAllRequests)
-		RequestGroup.Use(a.WithAuthCheck(role.Manager, role.Admin)).PUT("/:id/moderator/update-status", a.controller.UpdateRequestStatus)
-		RequestGroup.Use(a.WithAuthCheck(role.Buyer)).DELETE("/delete/:id", a.controller.DeleteRequest)
-		RequestGroup.Use(a.WithAuthCheck(role.Buyer)).PUT("/update/:id", a.controller.UpdateRequest)
-		RequestGroup.Use(a.WithAuthCheck(role.Buyer)).PUT("/:id/user/update-status", a.controller.UpdateRequestStatusToSendedByUser)
+		RequestGroup.GET("/", a.WithAuthCheck(role.Buyer, role.Manager, role.Admin), a.controller.GetAllRequests)
+		RequestGroup.PUT("/:id/moderator/update-status", a.WithAuthCheck(role.Manager, role.Admin), a.controller.UpdateRequestStatus)
+		RequestGroup.DELETE("/delete/:id", a.WithAuthCheck(role.Buyer), a.controller.DeleteRequest)
+		RequestGroup.PUT("/update/:id", a.WithAuthCheck(role.Buyer), a.controller.UpdateRequest)
+		RequestGroup.PUT("/:id/user/update-status", a.WithAuthCheck(role.Buyer), a.controller.UpdateRequestStatusToSendedByUser)
 	}
 
 	ConsultationRequestGroup := r.Group("/consultation-request")

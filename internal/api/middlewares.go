@@ -27,6 +27,7 @@ func (a *Application) WithAuthCheck(assignedRoles ...role.Role) func(ctx *gin.Co
 			fmt.Println("zdes")
 		} else {
 			fmt.Println("rfr")
+			fmt.Println(assignedRoles)
 			fmt.Println(jwtStr)
 			if !strings.HasPrefix(jwtStr, jwtPrefix) { // если нет префикса то нас дурят!
 				fmt.Println("ПЛОХО 1")

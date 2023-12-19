@@ -22,6 +22,18 @@ func (r *Repository) DeleteRequest(id int, userID uint) error {
 	return r.db.Exec("UPDATE requests SET status = 'deleted' WHERE id=? AND user_id=?", id, userID).Error
 }
 
+func (r *Repository) DeleteActiveRequest(userID uint) error {
+
+	request := &ds.Request{}
+	err := r.db.Find(request, "status = 'active' AND user_id = ?", userID).Error
+	if err != nil {
+		return err
+	}
+
+	return r.db.Exec("UPDATE requests SET status = 'deleted' WHERE id=? AND user_id=?", request.Id, userID).Error
+
+}
+
 func (r *Repository) GetAllRequests() ([]ds.Request, error) {
 	var requests []ds.Request
 	err := r.db.Find(&requests, "status <> 'deleted'").Error
@@ -101,7 +113,9 @@ func (r *Repository) UpdateRequestStatus(userID uint, id int, status string) err
 
 	// Обновляем поля существующей консультации.
 	existingRequest.Status = status
-	existingRequest.ModeratorID = userID
+	if existingRequest != nil {
+		existingRequest.ModeratorID = &userID
+	}
 	// Сохраняем обновленную консультацию в базу данных.
 	if err := r.db.Model(ds.Request{}).Where("id = ?", id).Updates(existingRequest).Error; err != nil {
 		return err

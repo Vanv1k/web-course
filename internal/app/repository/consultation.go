@@ -2,6 +2,7 @@ package repository
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"time"
 
@@ -29,7 +30,7 @@ func (r *Repository) GetConsultationsByRequestID(userID uint) (ds.ConsultationIn
 	if err != nil {
 		return consultationInfo, err
 	}
-
+	fmt.Println(request)
 	err = r.db.Find(&consultationRequests, "Requestid = ?", request.Id).Error
 	if err != nil {
 		return consultationInfo, err
@@ -40,6 +41,7 @@ func (r *Repository) GetConsultationsByRequestID(userID uint) (ds.ConsultationIn
 		if err != nil {
 			return consultationInfo, err
 		}
+		consultationInfo.Id = append(consultationInfo.Id, consultation.Id)
 		consultationInfo.Names = append(consultationInfo.Names, consultation.Name)
 		consultationInfo.Prices = append(consultationInfo.Prices, consultation.Price)
 	}
@@ -129,9 +131,10 @@ func (r *Repository) AddConsultationToRequest(consultationID int, userID uint) e
 				Status:             "active",
 				StartDate:          time.Now(),
 				UserID:             uint(userID),
-				Consultation_place: "Discord #abfa1213",
+				ModeratorID:        nil,
+				Consultation_place: "",
 				Consultation_time:  time.Now(),
-				Company_name:       "IT",
+				Company_name:       "",
 			}
 			err = r.db.Create(&newRequest).Error
 			if err != nil {

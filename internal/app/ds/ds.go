@@ -27,7 +27,7 @@ type Request struct {
 	FormationDate      time.Time
 	EndDate            time.Time
 	UserID             uint
-	ModeratorID        uint
+	ModeratorID        *uint
 	Consultation_place string
 	Consultation_time  time.Time
 	Company_name       string
@@ -44,6 +44,7 @@ type User struct {
 }
 
 type ConsultationInfo struct {
+	Id     []uint
 	Names  []string
 	Prices []int
 }

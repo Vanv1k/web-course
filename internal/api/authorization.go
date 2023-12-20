@@ -25,8 +25,9 @@ type registerReq struct {
 }
 
 type registerResp struct {
-	Ok          bool   `json:"ok"`
-	AccessToken string `json:"access_token"`
+	Ok          bool      `json:"ok"`
+	AccessToken string    `json:"access_token"`
+	Role        role.Role `json:"role"`
 }
 
 // @Summary Registration
@@ -127,6 +128,7 @@ func (a *Application) Register(gCtx *gin.Context) {
 	gCtx.JSON(http.StatusOK, &registerResp{
 		Ok:          true,
 		AccessToken: strToken,
+		Role:        user.Role,
 	})
 }
 
@@ -207,9 +209,10 @@ type loginReq struct {
 }
 
 type loginResp struct {
-	ExpiresIn   int    `json:"expires_in"`
-	AccessToken string `json:"access_token"`
-	TokenType   string `json:"token_type"`
+	ExpiresIn   int       `json:"expires_in"`
+	AccessToken string    `json:"access_token"`
+	TokenType   string    `json:"token_type"`
+	Role        role.Role `json:"role"`
 }
 
 // @Summary Login
@@ -282,6 +285,7 @@ func (a *Application) Login(gCtx *gin.Context) {
 			ExpiresIn:   int(cfg.JWT.ExpiresIn.Seconds()),
 			AccessToken: strToken,
 			TokenType:   "Bearer",
+			Role:        user.Role,
 		})
 		return
 	}

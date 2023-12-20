@@ -52,3 +52,9 @@ type ConsultationInfo struct {
 type StatusData struct {
 	Status string `json:"status"`
 }
+
+type UpdateRequest struct {
+	ConsultationPlace string `json:"consultation_place"`
+	ConsultationTime  string `json:"consultation_time"`
+	CompanyName       string `json:"company_name"`
+}

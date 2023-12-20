@@ -314,7 +314,7 @@ func (c *Controller) UpdateRequest(gctx *gin.Context) {
 	}
 
 	// Попробуем извлечь JSON-данные из тела запроса
-	var updatedRequest ds.Request
+	var updatedRequest ds.UpdateRequest
 	if err := gctx.ShouldBindJSON(&updatedRequest); err != nil {
 		gctx.JSON(http.StatusBadRequest, gin.H{
 			"Status":  "Failed",

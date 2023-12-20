@@ -81,17 +81,22 @@ func (r *Repository) GetRequestsByDate(startDate time.Time, endDate time.Time) (
 	return requests, nil
 }
 
-func (r *Repository) UpdateRequest(id int, userID uint, request ds.Request) error {
+func (r *Repository) UpdateRequest(id int, userID uint, request ds.UpdateRequest) error {
 	// Проверяем, существует ли консультация с указанным ID.
 	existingRequest, err := r.GetRequestByID(id)
 	if err != nil {
 		return err // Возвращаем ошибку, если консультация не найдена.
 	}
 
+	parsedTime, err := time.Parse("2006-01-02 15:04", request.ConsultationTime)
+	if err != nil {
+		return err
+	}
+
 	// Обновляем поля существующей консультации.
-	existingRequest.Consultation_place = request.Consultation_place
-	existingRequest.Consultation_time = request.Consultation_time
-	existingRequest.Company_name = request.Company_name
+	existingRequest.Consultation_place = request.ConsultationPlace
+	existingRequest.Consultation_time = parsedTime
+	existingRequest.Company_name = request.CompanyName
 
 	// Сохраняем обновленную консультацию в базу данных.
 	if err := r.db.Model(ds.Request{}).Where("id = ? AND user_id=?", id, userID).Updates(existingRequest).Error; err != nil {

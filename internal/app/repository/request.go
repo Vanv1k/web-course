@@ -36,7 +36,7 @@ func (r *Repository) DeleteActiveRequest(userID uint) error {
 
 func (r *Repository) GetAllRequests() ([]ds.Request, error) {
 	var requests []ds.Request
-	err := r.db.Find(&requests, "status <> 'deleted'").Error
+	err := r.db.Find(&requests, "status <> 'deleted' AND status <> 'active'").Error
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +46,7 @@ func (r *Repository) GetAllRequests() ([]ds.Request, error) {
 
 func (r *Repository) GetAllUserRequests(userID uint) ([]ds.Request, error) {
 	var requests []ds.Request
-	err := r.db.Where("status <> 'deleted' AND user_id=?", userID).Find(&requests).Error
+	err := r.db.Where("status <> 'deleted' AND status <> 'active' AND user_id=?", userID).Find(&requests).Error
 	if err != nil {
 		return nil, err
 	}

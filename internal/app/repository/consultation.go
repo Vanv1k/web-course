@@ -21,17 +21,17 @@ func (r *Repository) GetConsultationByID(id uint) (*ds.Consultation, error) {
 	return consultation, nil
 }
 
-func (r *Repository) GetConsultationsByRequestID(userID uint) (ds.ConsultationInfo, error) {
+func (r *Repository) GetConsultationsByRequestID(userID uint, id int) (ds.ConsultationInfo, error) {
 	var consultationRequests []ds.ConsultationRequest
 	var consultationInfo ds.ConsultationInfo
 	var request ds.Request
 
-	err := r.db.Find(&request, "status = ? AND user_id = ?", "active", userID).Error
+	err := r.db.Find(&request, "id", id).Error
 	if err != nil {
 		return consultationInfo, err
 	}
 	fmt.Println(request)
-	err = r.db.Find(&consultationRequests, "Requestid = ?", request.Id).Error
+	err = r.db.Find(&consultationRequests, "Requestid = ?", id).Error
 	if err != nil {
 		return consultationInfo, err
 	}
@@ -41,10 +41,13 @@ func (r *Repository) GetConsultationsByRequestID(userID uint) (ds.ConsultationIn
 		if err != nil {
 			return consultationInfo, err
 		}
+
 		consultationInfo.Id = append(consultationInfo.Id, consultation.Id)
 		consultationInfo.Names = append(consultationInfo.Names, consultation.Name)
 		consultationInfo.Prices = append(consultationInfo.Prices, consultation.Price)
 	}
+
+	consultationInfo.RequestStatus = request.Status
 
 	return consultationInfo, nil
 }

@@ -48,10 +48,15 @@ func (c *Controller) GetConsultationByID(gctx *gin.Context) {
 	gctx.JSON(http.StatusOK, consultation)
 }
 
-type ResponseInfo struct {
+type Data struct {
 	Id    uint
 	Name  string
 	Price int
+}
+
+type ResponseInfo struct {
+	Status          string
+	ConsultationInf []Data
 }
 
 // @Summary Get Consultation by request ID
@@ -66,6 +71,20 @@ type ResponseInfo struct {
 // @Failure 500 {object} ds.Consultation "Ошибка сервера"
 // @Router /consultations/request [get]
 func (c *Controller) GetConsultationsByRequestID(gctx *gin.Context) {
+	var err error
+	id, err := strconv.Atoi(gctx.Param("id"))
+	if err != nil {
+		gctx.JSON(http.StatusInternalServerError, err)
+		return
+	}
+
+	if id < 0 {
+		gctx.JSON(http.StatusBadRequest, gin.H{
+			"Status":  "Failed",
+			"Message": "неверное значение id",
+		})
+		return
+	}
 
 	userID, contextError := gctx.Value("userID").(uint)
 	if !contextError {
@@ -77,23 +96,24 @@ func (c *Controller) GetConsultationsByRequestID(gctx *gin.Context) {
 	}
 
 	var consultationInfo ds.ConsultationInfo
-	var err error
 
-	consultationInfo, err = c.Repo.GetConsultationsByRequestID(userID)
+	consultationInfo, err = c.Repo.GetConsultationsByRequestID(userID, id)
 	if err != nil {
 		gctx.JSON(http.StatusInternalServerError, err)
 		return
 	}
 
-	var result []ResponseInfo
+	var result ResponseInfo
 	for i, _ := range consultationInfo.Names {
-		consultation := ResponseInfo{
+		consultation := Data{
 			Id:    consultationInfo.Id[i],
 			Name:  consultationInfo.Names[i],
 			Price: consultationInfo.Prices[i],
 		}
-		result = append(result, consultation)
+		result.ConsultationInf = append(result.ConsultationInf, consultation)
 	}
+	result.Status = consultationInfo.RequestStatus
+
 	gctx.JSON(http.StatusOK, result)
 }
 
@@ -214,7 +234,7 @@ func (c *Controller) CreateConsultation(gctx *gin.Context) {
 		})
 		return
 	}
-
+	consultation.Status = "active"
 	err := c.Repo.CreateConsultation(consultation)
 	if err != nil {
 		gctx.JSON(http.StatusInternalServerError, err)

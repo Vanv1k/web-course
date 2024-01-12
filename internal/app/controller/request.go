@@ -105,92 +105,23 @@ func (c *Controller) GetAllRequests(gctx *gin.Context) {
 	startFormationDateStr := gctx.DefaultQuery("startDate", "")
 	endFormationDateStr := gctx.DefaultQuery("endDate", "")
 
-	if status != "" {
-		requests, err = c.Repo.GetRequestsByStatus(status)
-		if err != nil {
-			gctx.JSON(http.StatusInternalServerError, err)
-			return
-		}
+	var startDate, endDate time.Time
+	layout := "2006-01-02"
 
-		var result []GetAllRequestsResponse
-		for i, _ := range requests {
-			var userName string
-			var moderatorName string
-			userName, err = c.Repo.GetUserName(requests[i].UserID)
-			if requests[i].ModeratorID == nil {
-				moderatorName, err = c.Repo.GetUserName(0)
-			} else {
-				moderatorName, err = c.Repo.GetUserName(*requests[i].ModeratorID)
-			}
-			request := GetAllRequestsResponse{
-				Id:                 requests[i].Id,
-				Status:             requests[i].Status,
-				StartDate:          requests[i].StartDate,
-				FormationDate:      requests[i].FormationDate,
-				EndDate:            requests[i].EndDate,
-				UserName:           userName,
-				ModeratorName:      moderatorName,
-				Consultation_place: requests[i].Consultation_place,
-				Consultation_time:  requests[i].Consultation_time,
-				Company_name:       requests[i].Company_name,
-			}
-			result = append(result, request)
-		}
-
-		gctx.JSON(http.StatusOK, result)
-		return
-	}
 	log.Println(startFormationDateStr + "ASSDA")
 	if startFormationDateStr != "" {
-		var startFormationDate time.Time
-		var endFormationDate time.Time
-		layout := "2006-01-02 15:04:05.000000"
-		startFormationDate, err = time.Parse(layout, startFormationDateStr)
-		log.Println(startFormationDate)
+		startDate, err = time.Parse(layout, startFormationDateStr)
 		if err != nil {
 			gctx.JSON(http.StatusInternalServerError, err)
 			return
 		}
-		if endFormationDateStr != "" {
-			endFormationDate, err = time.Parse(layout, endFormationDateStr)
-
-			if err != nil {
-				gctx.JSON(http.StatusInternalServerError, err)
-				return
-			}
-		}
-
-		requests, err = c.Repo.GetRequestsByDate(startFormationDate, endFormationDate)
+	}
+	if endFormationDateStr != "" {
+		endDate, err = time.Parse(layout, endFormationDateStr)
 		if err != nil {
 			gctx.JSON(http.StatusInternalServerError, err)
 			return
 		}
-		var result []GetAllRequestsResponse
-		for i, _ := range requests {
-			var userName string
-			var moderatorName string
-			userName, err = c.Repo.GetUserName(requests[i].UserID)
-			if requests[i].ModeratorID == nil {
-				moderatorName, err = c.Repo.GetUserName(0)
-			} else {
-				moderatorName, err = c.Repo.GetUserName(*requests[i].ModeratorID)
-			}
-			request := GetAllRequestsResponse{
-				Id:                 requests[i].Id,
-				Status:             requests[i].Status,
-				StartDate:          requests[i].StartDate,
-				FormationDate:      requests[i].FormationDate,
-				EndDate:            requests[i].EndDate,
-				UserName:           userName,
-				ModeratorName:      moderatorName,
-				Consultation_place: requests[i].Consultation_place,
-				Consultation_time:  requests[i].Consultation_time,
-				Company_name:       requests[i].Company_name,
-			}
-			result = append(result, request)
-		}
-		gctx.JSON(http.StatusOK, result)
-		return
 	}
 	log.Println("go here")
 	requests, err = c.Repo.GetAllRequests()
@@ -199,28 +130,42 @@ func (c *Controller) GetAllRequests(gctx *gin.Context) {
 		return
 	}
 
+	filteredRequests := []ds.Request{}
+
+	for _, request := range requests {
+		if (status == "" || request.Status == status) &&
+			(startDate.IsZero() || request.FormationDate.After(startDate)) &&
+			(endDate.IsZero() || request.FormationDate.Before(endDate)) {
+			filteredRequests = append(filteredRequests, request)
+		}
+	}
+	if len(filteredRequests) == 0 {
+		gctx.JSON(http.StatusOK, filteredRequests)
+		return
+	}
+
 	var result []GetAllRequestsResponse
-	for i, _ := range requests {
+	for i, _ := range filteredRequests {
 		var userName string
 		var moderatorName string
-		userName, err = c.Repo.GetUserName(requests[i].UserID)
-		if requests[i].ModeratorID == nil {
+		userName, err = c.Repo.GetUserName(filteredRequests[i].UserID)
+		if filteredRequests[i].ModeratorID == nil {
 			moderatorName, err = c.Repo.GetUserName(0)
 		} else {
-			moderatorName, err = c.Repo.GetUserName(*requests[i].ModeratorID)
+			moderatorName, err = c.Repo.GetUserName(*filteredRequests[i].ModeratorID)
 		}
 
 		request := GetAllRequestsResponse{
-			Id:                 requests[i].Id,
-			Status:             requests[i].Status,
-			StartDate:          requests[i].StartDate,
-			FormationDate:      requests[i].FormationDate,
-			EndDate:            requests[i].EndDate,
+			Id:                 filteredRequests[i].Id,
+			Status:             filteredRequests[i].Status,
+			StartDate:          filteredRequests[i].StartDate,
+			FormationDate:      filteredRequests[i].FormationDate,
+			EndDate:            filteredRequests[i].EndDate,
 			UserName:           userName,
 			ModeratorName:      moderatorName,
-			Consultation_place: requests[i].Consultation_place,
-			Consultation_time:  requests[i].Consultation_time,
-			Company_name:       requests[i].Company_name,
+			Consultation_place: filteredRequests[i].Consultation_place,
+			Consultation_time:  filteredRequests[i].Consultation_time,
+			Company_name:       filteredRequests[i].Company_name,
 		}
 		result = append(result, request)
 	}

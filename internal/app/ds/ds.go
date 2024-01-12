@@ -44,9 +44,10 @@ type User struct {
 }
 
 type ConsultationInfo struct {
-	Id     []uint
-	Names  []string
-	Prices []int
+	RequestStatus string
+	Id            []uint
+	Names         []string
+	Prices        []int
 }
 
 type StatusData struct {
